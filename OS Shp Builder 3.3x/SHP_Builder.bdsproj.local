@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2007/10/26 00:08:08.921.pas,J:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\Palette.pas=</Transaction>
+    <Transaction>2008/01/06 02:23:41.625.pas,J:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\Unit1.pas=J:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\ClassGIFCache.pas</Transaction>
+    <Transaction>2008/01/06 02:40:54.406.pas,J:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\Unit1.pas=J:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\ClassGIFCacheManager.pas</Transaction>
+    <Transaction>2008/01/06 11:43:40.875.pas,J:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\Unit1.pas=J:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormExportFramesAsImage.pas</Transaction>
+    <Transaction>2008/01/06 11:43:40.875.dfm,J:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\Unit1.dfm=J:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormExportFramesAsImage.dfm</Transaction>
+    <Transaction>2008/04/24 14:14:11.421.pas,J:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\Unit1.pas=J:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormMirrorSHP.pas</Transaction>
+    <Transaction>2008/04/24 14:14:11.421.dfm,J:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\Unit1.dfm=J:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormMirrorSHP.dfm</Transaction>
+    <Transaction>2011/09/23 03:01:19.211.pas,D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSelectDirectory.pas=</Transaction>
+    <Transaction>2011/09/23 03:01:19.211.dfm,D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSelectDirectory.dfm=</Transaction>
+    <Transaction>2013/02/15 03:05:19.106.pas,D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormRepairAssistant.pas=D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormInstall.pas</Transaction>
+    <Transaction>2013/02/15 03:05:19.122.dfm,D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormRepairAssistant.dfm=D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormInstall.dfm</Transaction>
+    <Transaction>2013/02/19 00:03:41.474.pas,D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\Unit1.pas=D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSeledtDirectory.pas</Transaction>
+    <Transaction>2013/02/19 00:03:41.474.dfm,D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\Unit1.dfm=D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSeledtDirectory.dfm</Transaction>
+    <Transaction>2013/02/19 00:10:08.068.pas,D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSeledtDirectory.pas=D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSelectDirectory.pas</Transaction>
+    <Transaction>2013/02/19 00:10:08.068.dfm,D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSeledtDirectory.dfm=D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSelectDirectory.dfm</Transaction>
+    <Transaction>2013/02/19 00:10:08.115.pas,D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSelectDirectory.pas=D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSeledtDirectory.pas</Transaction>
+    <Transaction>2013/02/19 00:10:08.115.dfm,D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSelectDirectory.dfm=D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSeledtDirectory.dfm</Transaction>
+    <Transaction>2013/02/19 00:10:31.490.pas,D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSeledtDirectory.pas=D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSelectDirectory.pas</Transaction>
+    <Transaction>2013/02/19 00:10:31.490.dfm,D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSeledtDirectory.dfm=D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSelectDirectory.dfm</Transaction>
+    <Transaction>2013/02/19 00:10:31.521.pas,D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSelectDirectory.pas=D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSeledtDirectory.pas</Transaction>
+    <Transaction>2013/02/19 00:10:31.521.dfm,D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSelectDirectory.dfm=D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSeledtDirectory.dfm</Transaction>
+    <Transaction>2013/02/19 00:11:50.943.pas,D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSeledtDirectory.pas=D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSelectDirectoryInstall.pas</Transaction>
+    <Transaction>2013/02/19 00:11:50.943.dfm,D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSeledtDirectory.dfm=D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSelectDirectoryInstall.dfm</Transaction>
+    <Transaction>2013/02/19 00:13:13.443.pas,D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSelectDirectory.pas=</Transaction>
+    <Transaction>2013/02/19 00:13:13.443.dfm,D:\SuperProjetos\SHP Builder SVN\OS SHP Builder 3.3x\FormSelectDirectory.dfm=</Transaction>
+  </Transactions>
+</BorlandProject>
