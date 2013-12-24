@@ -1250,7 +1250,7 @@ object SHPBuilderFrmMain: TSHPBuilderFrmMain
       Align = alTop
       BevelOuter = bvNone
       Caption = '=========================='
-      Color = clBackground
+      Color = clWindowFrame
       ParentBackground = False
       TabOrder = 8
     end
@@ -1262,7 +1262,7 @@ object SHPBuilderFrmMain: TSHPBuilderFrmMain
       Align = alTop
       BevelOuter = bvNone
       Caption = '=========================='
-      Color = clBackground
+      Color = clWindowFrame
       ParentBackground = False
       TabOrder = 9
     end
@@ -1274,7 +1274,7 @@ object SHPBuilderFrmMain: TSHPBuilderFrmMain
       Align = alTop
       BevelOuter = bvNone
       Caption = '=========================='
-      Color = clBackground
+      Color = clWindowFrame
       ParentBackground = False
       TabOrder = 10
     end

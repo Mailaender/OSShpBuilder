@@ -8,10 +8,13 @@ uses
   SHP_Image, Palette, Undo_Redo, Mouse, math, XPMan, SHP_Engine_CCMs, Colour_list;
 
 type
+   TRGB32 = packed record
+      R, G, B, A: byte;
+   end;
+
    TColorArray = Array [0..MaxInt div SizeOf(TRGB32) - 1] of TRGB32;
    TScanline = ^TColorArray;
-
-
+   TCell = array of array of integer;
 
    TFrmSHPImage = class(TForm)
       PaintAreaPanel: TPanel;
@@ -65,6 +68,7 @@ type
 
       function GetOppositeRGB32(const color : TRGB32) : TRGB32;
       function ColorToRGB32(const color : TColor) : TRGB32;
+      procedure InitCellShape(var cell : TCell);
 
       // Tool Methods
       procedure SelectColor(x, y : integer);
@@ -129,7 +133,7 @@ type
 
       procedure SelectNextFrame;
       procedure SelectPrecedingFrame;
-      procedure SetFrameIndex(v : byte);
+      procedure SetFrameIndex(v : integer);
       procedure SetBackgroundEnabled(Value: boolean);
    end;
 
@@ -223,10 +227,28 @@ end;
 //---------------------------------------------
 procedure TFrmSHPImage.DrawGrid(var bmp : TBitmap; color : TRGB32);
 var 
-   c, r, x, y, x2, y2, xdiv2, xZ, yZ : integer;
+   cell : TCell;
+   cellWidth, cellHeight : integer;
+   x, y, i: integer;
    ShpContext : TSHPImageData;
+   line : TScanline;
 begin
    ShpContext := Data;
+
+   cellWidth := 48;
+   cellHeight := 25;
+   InitCellShape(cell);
+
+   for y := 0 to  cellHeight - 1 do begin
+      line := bmp.Scanline[y];
+
+      for i := 0 to 7 do begin
+         x := cell[y, i];
+         if x = -1 then
+            Break;
+         line[x] := color; 
+      end;
+   end;
 
 end;
 
@@ -290,8 +312,10 @@ var
    ShpContext : TSHPImageData;
 begin
    ShpContext := Data;
-   if IsShadow(ShpContext^.Shp, FrameIndex) and (ShadowMode) then
+
+   if IsShadow(ShpContext^.Shp, FrameIndex) and (ShadowMode) then begin
       DrawShadowWithFrameVirtual(ShpContext^.SHP, ShpContext^.Shadow_Match, FrameIndex, ShpContext^.SHPPalette, bmp)
+   end
    else
       DrawFrameVirtual(ShpContext^.SHP, ShpContext^.Shadow_Match, FrameIndex, false, ShpContext^.SHPPalette, bmp);
 end;
@@ -445,6 +469,64 @@ begin
    end;
 end;
 
+
+//---------------------------------------------
+// Create Cell Shape (ts)
+//---------------------------------------------
+procedure TFrmSHPImage.InitCellShape(var cell : TCell);
+var
+   Width, Height,
+   mid, bottom, sep, x, y, i : integer;
+begin
+   // 48 x 25 = (w x h)
+   Width := 48;
+   Height := 25;
+   SetLength(cell, Height, 8);
+   mid := round(Height / 2);
+   bottom := Height - 1;
+
+   cell[0][0] := 22;
+   cell[0][1] := 23;
+   cell[0][2] := 24;
+   cell[0][3] := 25;
+   cell[0][4] := -1;
+
+   sep := 0;
+   x := round(Width / 2) - 4;
+   for y := 1 to mid - 1 do begin
+      for i := 0 to 3 do
+         cell[y, i] := x + i;
+      for i := 0 to 3 do
+         cell[y, i + 4] := x + 4 + i + sep;
+
+      x := x - 2;
+      sep := sep + 4;
+   end;
+
+   cell[mid][0] := 0;
+   cell[mid][1] := 1;
+   cell[mid][2] := 46;
+   cell[mid][3] := 47;
+   cell[mid][4] := -1;
+
+   sep := Width - 8;
+   x := 0;
+   for y := mid + 1 to Height - 2 do begin
+      for i := 0 to 3 do
+         cell[y, i] := x + i;
+      for i := 0 to 3 do
+         cell[y, i + 4] := x + 4 + i + sep;
+
+      x := x + 2;
+      sep := sep - 4;
+   end;
+
+   cell[bottom][0] := 22;
+   cell[bottom][1] := 23;
+   cell[bottom][2] := 24;
+   cell[bottom][3] := 25;
+   cell[bottom][4] := -1;
+end;
 
 
 
@@ -627,13 +709,14 @@ end;
 // Set Frame Index
 // 1..FrameCount
 //---------------------------------------------
-procedure TFrmSHPImage.SetFrameIndex(v : byte);
+procedure TFrmSHPImage.SetFrameIndex(v : integer);
 var
    ShpContext : TSHPImageData;
+   shpName : string;
 begin
    ShpContext := Data;
 
-   if (v > 0) and (v < ShpContext^.Shp.Header.NumImages) and
+   if (v > 0) and (v <= ShpContext^.Shp.Header.NumImages) and
       FrmMain.OtherOptionsData.ApplySelOnFrameChanging and 
       Selection.HasData and Selection.HasMoved then
       ApplySelection;
@@ -641,6 +724,19 @@ begin
    ResetSelection;
    FrameIndex := v;
    RefreshImage1;
+
+
+   // Update UI
+   if (ShpContext^.Filename = '') then
+      shpName := 'Untitled ' + IntToStr(ShpContext^.ID)
+   else
+      shpName := ExtractFilename(ShpContext^.Filename);
+
+   Caption := '[ ' + IntToStr(Zoom) + ' : 1 ] ' 
+               + shpName 
+               + ' (' + IntToStr(FrameIndex) + '/' + IntToStr(ShpContext^.Shp.Header.NumImages) + ')';
+
+   FrmMain.UpdateFrameUIComponents;
 end;
 
 
@@ -835,6 +931,8 @@ begin
    Selection.Visible := true;
    Selection.IsFromClipboard := true;
 end;
+
+
 
 
 //---------------------------------------------

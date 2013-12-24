@@ -19,13 +19,13 @@ uses
 Const
    SHP_BUILDER_VER = '3.37';
 {$IFDEF _BETA}
-   SHP_BUILDER_BETA_VER = '20 (z4)';
-   SHP_BUILDER_INTERNAL_VERSION = '3.369920.z4';
+   SHP_BUILDER_BETA_VER = '20 (z5)';
+   SHP_BUILDER_INTERNAL_VERSION = '3.369920.z5';
 {$ENDIF}
    SHP_BUILDER_TITLE = ' Open Source SHP Builder';
    SHP_BUILDER_BY = 'Banshee & Stucuk';
    SHP_BUILDER_CONTRIBUTORS = 'PaD, VK and Zaaz';
-   CONFIG_KEY = '2.0'; // Version of Config File Format
+   CONFIG_KEY = '2.1'; // Version of Config File Format
    VIEWMENU_MINIMUM = 7;
 
 type
@@ -745,7 +745,7 @@ type
       procedure FillwithGradient1Click(Sender: TObject);
       procedure ExportSHPAsImages(StartFrame, EndFrame : integer);
       function GetPaletteFileName(const filename, game: string): string;
-      function BlockReadString(var _F: File): string;
+      function BlockReadString(var _F: File) : string;
       procedure BlockWriteString(var _F: File; const _MyString: string);
    private
       { Private declarations }
@@ -753,7 +753,8 @@ type
       OpenFilesList : array of string[255];
       FileToBeOpened : string; // intercomunication purpouses
       OpenDir : string[255];
-      SaveDir : string[255];
+      OpenPaletteDir : string[255];
+      SaveDir : string[255];      
       ExportDir : string[255];
 
       procedure LoadConfig1(var F:file);
@@ -764,10 +765,13 @@ type
       procedure LoadConfig6(var F:file);
       procedure LoadConfig7(var F:file);
       procedure LoadConfig8(var F:file);
+      procedure LoadConfig9(var F:file);
       procedure InitPreferences;
       procedure VerifyPreferenceData;
    public
       { Public declarations }
+      ImportDir : string[255];
+      
       AppConstants : TAppConstants;
       ActiveForm : ^TFrmSHPImage;
       ActiveData : TSHPImageData;
@@ -798,7 +802,6 @@ type
       CurrentPaletteID : string;
       MaxOpenFiles : word;
       SiteList : TSitesList;
-      ImportDir : string[255];
       CurrentSHPType : ^TMenuItem;
       GIFCacheManager : CGIFCacheManager;
       SelectionPosition : TPoint2D;
@@ -817,6 +820,7 @@ type
       procedure UndoUpdate(var UndoList :TUndoRedo);
       procedure RunAProgram (const theProgram, itsParameters, defaultDirectory : string);
       function RunAsAdmin(const _Filename: string; const _Parameters: string): Boolean;
+      procedure UpdateFrameUIComponents;
    end;
 
 var
@@ -1145,8 +1149,8 @@ begin
    // Init. Application Constants
    AppConstants.AppDir := extractfiledir(ParamStr(0));
    AppConstants.ImageDir := AppConstants.AppDir + '\Images\';
-   AppConstants.PaletteDir := AppConstants.AppDir + '\Palettes\';
-   AppConstants.DefaultPaletteFilename := AppConstants.PaletteDir + 'TS\unittem.pal';
+   AppConstants.PaletteDir := AppConstants.AppDir + '\Palettes';
+   AppConstants.DefaultPaletteFilename := AppConstants.PaletteDir + '\TS\unittem.pal';
    AppConstants.PreferencesFilename := AppConstants.AppDir + '\SHP_BUILDER.dat';
    AppConstants.SequenceFilename := AppConstants.AppDir + '\SequenceGenerator.asdf';
    AppConstants.CommLinksFilename := AppConstants.AppDir + '\commlist.ini';
@@ -1192,10 +1196,10 @@ begin
    else
       Preferences1Click(Sender);
 
-
    // Set Last Palette Filename
    if (not OtherOptionsData.AutoSelectSHPType) and FileExists(OtherOptionsData.LastPalettePath) then
       SetPalette(OtherOptionsData.LastPalettePath);
+
 
    // Set BackgroundEnabled
    ToogleBackgroundColourMenuItem.Checked := OtherOptionsData.BackgroundEnabled;
@@ -1225,19 +1229,21 @@ begin
    if Not LoadMouseCursors  then
       close;
 
-   OpenPaletteDialog.InitialDir := AppConstants.PaletteDir;
    Caption := getCaption;
+
 
    // Set default active tool
    DrawMode := dmDropper;
    SpbColorSelector.Down := true;
    ShowDropperOptions;
 
+
    TempViewLength := 0;
    DarkenLighten_N := 1;
    Brush_Type := 0;
    PreviewBrush1.Checked := PreviewBrush;
    AutoSelectSHPType1.Checked := OtherOptionsData.AutoSelectSHPType;
+
 
    // Process additional messages/parameters
    temp := '';
@@ -1258,7 +1264,7 @@ end;
 //---------------------------------------------
 // Block Read String
 //---------------------------------------------
-function TSHPBuilderFrmMain.BlockReadString(var _F: File): string;
+function TSHPBuilderFrmMain.BlockReadString(var _F: File) :  string;
 var
    i: integer;
    Buffer: array[0..254] of char;
@@ -1282,24 +1288,29 @@ var
    i: integer;
    Buffer: array[0..254] of char;
 begin
-   i := 1;
-   while i <= Length(_MyString) do
+   i := 0;
+
+   while (i < 255) and (i < Length(_MyString)) do
    begin
-      Buffer[i-1] := _MyString[i];
+      Buffer[i] := _MyString[i + 1];
       inc(i);
    end;
-   Buffer[i-1] := #0;
-   while i <= 254 do
+   
+
+   while i < 255 do
    begin
       Buffer[i] := #0;
       inc(i);
    end;
-   BlockWrite(_F,Buffer,255 * Sizeof(char));
+
+   Buffer[254] := #0;
+
+   BlockWrite(_F, Buffer, 255 * Sizeof(char));
 end;
 
 
 //---------------------------------------------
-// Save Configuration File (1.9)
+// Save Configuration File 
 //---------------------------------------------
 Procedure TSHPBuilderFrmMain.SaveConfig(_Filename:string);
 var
@@ -1316,27 +1327,28 @@ begin
    Rewrite(F,1);
 
    try
-   // Save values
-   Key := CONFIG_KEY;
-   Blockwrite(F,Key,SizeOf(Key));
-   Blockwrite(F,FileAssociationsPreferenceData,Sizeof(FileAssociationsPreferenceData));
-   Blockwrite(F,PalettePreferenceData,Sizeof(PalettePreferenceData));
-   Blockwrite(F,alg,Sizeof(alg));
-   Blockwrite(F,savemode,Sizeof(savemode));
-   Blockwrite(F,loadmode,Sizeof(loadmode));
-   Blockwrite(F,MaxOpenFiles,sizeof(MaxOpenFiles));
-   if MaxOpenFiles > 0 then
-      for count := 0 to (MaxOpenFiles - 1) do
-         BlockWriteString(F,OpenFilesList[count]);
-   BlockWriteString(F,OpenDir);
-   BlockWriteString(F,SaveDir);
-   BlockWriteString(F,ImportDir);
-   BlockWriteString(F,ExportDir);
-   Blockwrite(F,PreviewBrush,sizeof(boolean));
-   Blockwrite(F,OtherOptionsData.AutoSelectSHPType,sizeof(boolean));
-   BlockWriteString(F,OtherOptionsData.LastPalettePath);
-   Blockwrite(F,OtherOptionsData.BackgroundEnabled,sizeof(boolean));
-   BlockWrite(F, OtherOptionsData.ApplySelOnFrameChanging, SizeOf(boolean));
+      // Save values
+      Key := CONFIG_KEY;
+      Blockwrite(F,Key,SizeOf(Key));
+      Blockwrite(F,FileAssociationsPreferenceData,Sizeof(FileAssociationsPreferenceData));
+      Blockwrite(F,PalettePreferenceData,Sizeof(PalettePreferenceData));
+      Blockwrite(F,alg,Sizeof(alg));
+      Blockwrite(F,savemode,Sizeof(savemode));
+      Blockwrite(F,loadmode,Sizeof(loadmode));
+      Blockwrite(F,MaxOpenFiles,sizeof(MaxOpenFiles));
+      if MaxOpenFiles > 0 then
+         for count := 0 to (MaxOpenFiles - 1) do
+            BlockWriteString(F, OpenFilesList[count]);
+      BlockWriteString(F, OpenDir ); 
+      BlockWriteString(F, SaveDir ); 
+      BlockWriteString(F, ImportDir);
+      BlockWriteString(F, ExportDir);
+      Blockwrite(F,PreviewBrush,sizeof(boolean));
+      Blockwrite(F,OtherOptionsData.AutoSelectSHPType,sizeof(boolean));
+      BlockWriteString(F, OtherOptionsData.LastPalettePath); 
+      Blockwrite(F,OtherOptionsData.BackgroundEnabled,sizeof(boolean));
+      BlockWrite(F, OtherOptionsData.ApplySelOnFrameChanging, SizeOf(boolean));
+      BlockWriteString(F, OpenPaletteDir); 
    except
       Erase(F);
       ShowMessage('Error: unable to save the configuration file. Your preferences wont be saved. :(');
@@ -1377,8 +1389,10 @@ begin
          LoadConfig6(F)
       else if( Key = '1.9') then
          LoadConfig7(F)
-      else //         2.0
-         LoadConfig8(F);
+      else if( Key = '2.0') then
+         LoadConfig8(F)
+      else // ....... 2.1
+         LoadConfig9(F);
    end;
    except
       Preferences1Click(nil);
@@ -1499,6 +1513,7 @@ begin
    OpenFilesList[3] := '';
    OpenFilesList[4] := '';
    OpenDir := AppConstants.PaletteDir;
+   OpenPaletteDir := AppConstants.PaletteDir;
    SaveDir := AppConstants.PaletteDir;
    ImportDir := OpenDir;
    ExportDir := OpenDir;
@@ -1509,6 +1524,15 @@ begin
    OtherOptionsData.ApplySelOnFrameChanging := false;
 end;
 
+
+//---------------------------------------------
+// Load Configuration File - Version 2.1
+//---------------------------------------------
+procedure TSHPBuilderFrmMain.LoadConfig9(var F: file);
+begin
+   LoadConfig8(F);
+   OpenPaletteDir := BlockReadString(F);
+end;
 
 //---------------------------------------------
 // Load Configuration File - Version 2.0
@@ -1560,18 +1584,18 @@ begin
    BlockRead(F,FileAssociationsPreferenceData,Sizeof(FileAssociationsPreferenceData));
    BlockRead(F,PalettePreferenceData,Sizeof(PalettePreferenceData));
    BlockRead(F,alg,Sizeof(alg));
-   BlockRead(F,savemode,Sizeof(savemode));
-   BlockRead(F,loadmode,Sizeof(loadmode));
+   BlockRead(F,savemode,Sizeof(SaveMode));
+   BlockRead(F,loadmode,Sizeof(LoadMode));
    BlockRead(F,MaxOpenFiles,Sizeof(MaxOpenFiles));
    SetLength(OpenFilesList,MaxOpenFiles);
    if MaxOpenFiles > 0 then
-      for count := 0 to (MaxOpenFiles-1) do
-         BlockRead(F,OpenFilesList[count],255 * Sizeof(char));
-   BlockRead(F,OpenDir,255 * Sizeof(char));
-   BlockRead(F,SaveDir,255 * Sizeof(char));
-   BlockRead(F,ImportDir,255 * Sizeof(char));
-   BlockRead(F,ExportDir,255 * Sizeof(char));
-   BlockRead(F,PreviewBrush,Sizeof(Boolean));
+      for count := 0 to (MaxOpenFiles - 1) do
+         OpenFilesList[count] := BlockReadString(F);
+   OpenDir := BlockReadString(F);
+   SaveDir := BlockReadString(F);
+   ImportDir := BlockReadString(F);
+   ExportDir := BlockReadString(F);
+   BlockRead(F, PreviewBrush,Sizeof(Boolean));
 end;
 
 
@@ -1688,7 +1712,7 @@ begin
    TbShowCenter.enabled := isEditable;
    TbPreviewWindow.enabled := isEditable;
    // TODO: enable showgrid
-   TbShowGrid.enabled := false;
+   TbShowGrid.enabled := true;
 
    ools1.Visible := isEditable;
    Undo1.Visible := isEditable;
@@ -1732,7 +1756,7 @@ var
    Data : TSHPImageData;
    CorruptedData,SafeGuard : TSHPImageData;
 begin
-   OpenDir := extractfiledir(_Filename);
+   OpenDir := ExtractFileDir(_Filename);
    SetIsEditable(false);
 
    try
@@ -1841,6 +1865,8 @@ begin
       maxy := SHP.Header.Height-1;
    end;
 end;
+
+
 
 
 //---------------------------------------------
@@ -2197,6 +2223,10 @@ begin
       SetIsEditable(Editable);
 end;
 
+
+//---------------------------------------------
+// Open SHP Click
+//---------------------------------------------
 procedure TSHPBuilderFrmMain.Open1Click(Sender: TObject);
 begin
    OpenSHPDialog.InitialDir := OpenDir;
@@ -2206,6 +2236,10 @@ begin
    end;
 end;
 
+
+//---------------------------------------------
+// Save SHP Click
+//---------------------------------------------
 procedure TSHPBuilderFrmMain.Save1Click(Sender: TObject);
 var
    SHPTD : C_SHPTD;
@@ -3239,6 +3273,10 @@ begin
    blue := raw and $000000FF;
 end;
 
+
+//---------------------------------------------
+// Canvas Palette Paint
+//---------------------------------------------
 procedure TSHPBuilderFrmMain.cnvPalettePaint(Sender: TObject);
 var
    colwidth, rowheight: Real;
@@ -3249,7 +3287,7 @@ begin
    if ActiveData = nil then exit;
 
    CurrentPaletteID := ActiveData^.SHPPaletteFilename;
-   lblPalette.Caption := extractfilename(ActiveData^.SHPPaletteFilename);
+   //lblPalette.Caption := extractfilename(ActiveData^.SHPPaletteFilename);
    colwidth := cnvPalette.Width / 8;
    rowheight := cnvPalette.Height / 32;
    idx := 0;
@@ -3273,7 +3311,6 @@ begin
          SColour := 16;
          ActiveData^.PaletteMax := 256;
       end;
-
 
    for i := 0 to 8 do
    begin
@@ -3394,7 +3431,7 @@ end;
 //---------------------------------------------
 Procedure TSHPBuilderFrmMain.PaletteLoaded(_Filename: string);
 begin
-   lblPalette.caption := ' Palette - '+extractfilename(_Filename);
+   lblPalette.caption := ExtractFilename(_Filename);
    if self.MDIChildCount <> 0 then
       Current_FrameChange(nil);
 
@@ -3465,6 +3502,8 @@ begin
       ActiveData^.SHPPaletteFilename := _Filename;
       PaletteLoaded(_Filename);
       OtherOptionsData.LastPalettePath := _Filename;
+      if ActiveForm <> nil then
+         ActiveForm^.RefreshImage1;
    end;
 end;
 
@@ -3474,8 +3513,11 @@ end;
 //---------------------------------------------
 procedure TSHPBuilderFrmMain.Load1Click(Sender: TObject);
 begin
+   OpenPaletteDialog.InitialDir := OpenPaletteDir;
    if OpenPaletteDialog.Execute then
    begin
+      OpenPaletteDir := ExtractFileDir(OpenPaletteDialog.FileName);
+
       SetPalette(OpenPaletteDialog.FileName);
       if ActiveForm <> nil then
          ActiveForm^.ResizePaintArea(ActiveForm^.Image1,ActiveForm^.PaintAreaPanel);
@@ -6554,40 +6596,60 @@ begin
    end;
 end;
 
+
+//---------------------------------------------
+// UpDownFrameIndex Value Changed
+//---------------------------------------------
 procedure TSHPBuilderFrmMain.Current_FrameChange(Sender: TObject);
 var
-   IsItShadow : boolean;
+   isShadowFrame : boolean;
+   v : integer;
 begin
    if (((not FrmMain.isEditable) or (Current_Frame.Text = '')) or (Current_Frame.Text = '-')) then exit;
-   if Current_Frame.value > ActiveData^.SHP.Header.NumImages then
-      Current_Frame.value := 1;
+   if ( Current_Frame.value = ActiveForm^.FrameIndex) then exit;
+   v := Current_Frame.value;
 
-   if Current_Frame.value < 1 then
-      Current_Frame.Value := ActiveData^.SHP.Header.NumImages;
+   if v > ActiveData^.SHP.Header.NumImages then
+      v := 1;
 
-   IsItShadow := IsShadow(ActiveData^.SHP,Current_Frame.Value);
+   if v < 1 then
+      v := ActiveData^.SHP.Header.NumImages;
 
-   ActiveForm^.SetFrameIndex(Current_Frame.Value);
-   if (ActiveData^.Filename = '') then
-      ActiveForm^.Caption := '[ ' + IntToStr(ActiveForm^.Zoom) + ' : 1 ] ' + 'Untitled ' + IntToStr(ActiveData^.ID) + ' (' + IntToStr(ActiveForm^.FrameIndex) + '/' + IntToStr(ActiveData^.SHP.Header.NumImages) + ')'
-   else
-      ActiveForm^.Caption := '[ ' + IntToStr(ActiveForm^.Zoom) + ' : 1 ] ' + extractfilename(ActiveData^.Filename) + ' (' + IntToStr(ActiveForm^.FrameIndex) + '/' + IntToStr(ActiveData^.SHP.Header.NumImages) + ')';
+   ActiveForm^.SetFrameIndex(v);
+end;
 
-   ActiveForm^.RefreshImage1;
-   if (IsItShadow) and (ActiveData^.PaletteMax <> 2) and (ActiveForm^.ShadowMode) then
+
+//---------------------------------------------
+// Update Frame UI Components
+//---------------------------------------------
+procedure TSHPBuilderFrmMain.UpdateFrameUIComponents;
+var
+   isShadowFrame : boolean;
+begin
+   FrmMain.Current_Frame.Value := ActiveForm^.FrameIndex;
+   isShadowFrame := IsShadow(ActiveData^.SHP, ActiveForm^.FrameIndex);
+   if (isShadowFrame) and (ActiveData^.PaletteMax <> 2) and (ActiveForm^.ShadowMode) then
    begin
       StatusBar1.Panels[0].Text := 'Shadow Frame';
       ActiveForm^.SetShadowColour(ActiveForm^.ShadowColour);
-      cnvPalette.Repaint;
    end
-   else if (Not(IsItShadow) or not ActiveForm^.shadowmode) and (ActiveData^.PaletteMax <> 256) then
+   else if (Not(isShadowFrame) or not ActiveForm^.ShadowMode) and (ActiveData^.PaletteMax <> 256) then
    begin
       StatusBar1.Panels[0].Text := 'Owner Frame';
       ActiveForm^.SetActiveColour(ActiveForm^.ActiveColour);
-      cnvPalette.Repaint;
-   end
+   end;
+
+   // Clear Canvas Palette
+   with cnvPalette.Canvas do
+   begin
+      Brush.Color := FrmMain.Color;
+      FillRect(ClientRect);
+   end;
+   // Invalidate
+   cnvPalette.Invalidate;
 
 end;
+
 
 procedure TSHPBuilderFrmMain.SetFrameNumber;
 begin
@@ -6609,8 +6671,7 @@ end;
 
 procedure TSHPBuilderFrmMain.Zoom_FactorDblClick(Sender: TObject);
 begin
-   Current_Frame.Value := StrToInt(lbl_total_frames.Caption);
-   Current_FrameChange(Sender);
+   // Do nothing...
 end;
 
 // ******************************************* //

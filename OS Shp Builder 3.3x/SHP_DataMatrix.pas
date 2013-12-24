@@ -333,16 +333,15 @@ begin
       end;
    end;
 
-
-   // Set Palette
-   SelectPalette(Data);
-   LoadPaletteFromFile(Data^.SHPPaletteFilename, Data^.SHPPalette);
-
    // Init. remaining values
+   SelectPalette(Data);
    Data^.PaletteMax := 256;
    ClearUndo(Data^.UndoList);
-   GenerateShadowCache(Data);
    Data^.Filename := '';
+
+
+   LoadPaletteFromFile(Data^.SHPPaletteFilename, Data^.SHPPalette);
+   GenerateShadowCache(Data);
    Result := true;
 end;
 
@@ -401,8 +400,9 @@ begin
    end;
 
    ClearUndo(Data^.UndoList);
-   GenerateShadowCache(Data);
    Data^.Filename := '';
+
+   GenerateShadowCache(Data);
    Result := true;
 end;
 
@@ -472,17 +472,15 @@ begin
    else
       CreateFrameImages(Data^.SHP);
 
-
-   // Set Palette
-   SelectPalette(Data);
-   LoadPaletteFromFile(Data^.SHPPaletteFilename, Data^.SHPPalette);
-
-
+   
    // Init. remaining values.
+   SelectPalette(Data);
    Data^.PaletteMax := 256;
    ClearUndo(Data^.UndoList);
-   GenerateShadowCache(Data);
    Data^.Filename := Filename;
+
+   GenerateShadowCache(Data);
+   LoadPaletteFromFile(Data^.SHPPaletteFilename, Data^.SHPPalette);
 end;
 
 
@@ -554,12 +552,14 @@ begin
          end; // end of TS
       end; // end of case
    end;
+
    Data^.SHP.SHPType := stCameo;
-   LoadPaletteFromFile(Data^.SHPPaletteFilename, Data^.SHPPalette);
    Data^.PaletteMax := 256;
    ClearUndo(Data^.UndoList);
-   GenerateShadowCache(Data);
    Data^.Filename := '';
+
+   LoadPaletteFromFile(Data^.SHPPaletteFilename, Data^.SHPPalette);
+   GenerateShadowCache(Data);
 end;
 
 
@@ -586,12 +586,13 @@ begin
    Data^.ID := ID;
    NewSHP(Data^.SHP, Frames, Width, Height);
    Data^.SHPPaletteFilename := PaletteFileName;
-   // Now load the palette.
-   LoadPaletteFromFile(Data^.SHPPaletteFilename, Data^.SHPPalette);
+   
    Data^.PaletteMax := 256;
    ClearUndo(Data^.UndoList);
-   GenerateShadowCache(Data);
    Data^.Filename := '';
+
+   LoadPaletteFromFile(Data^.SHPPaletteFilename, Data^.SHPPalette);
+   GenerateShadowCache(Data);
 end;
 
 
@@ -709,10 +710,12 @@ begin
    Data^.SHP.SHPType := CurrentData^.SHP.SHPType;
    Data^.SHPPaletteFilename := CurrentData^.SHPPaletteFilename;
    Data^.PaletteMax  := 256;
-   LoadPaletteFromFile(Data^.SHPPaletteFilename, Data^.SHPPalette);
+   
    ClearUndo(Data^.UndoList);
-   GenerateShadowCache(Data);
    Data^.Filename := '';
+
+   GenerateShadowCache(Data);
+   LoadPaletteFromFile(Data^.SHPPaletteFilename, Data^.SHPPalette);
    Result := true;
 end;
 
@@ -799,6 +802,7 @@ begin
    FrmMain.TbPreviewWindow.Down := false;
 
    // The final stuff.
+   FrmMain.lblPalette.Caption := ExtractFilename(Data^.SHPPaletteFilename);
    Data^.LastUndo  := 0;
 end;
 

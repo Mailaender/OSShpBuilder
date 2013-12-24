@@ -75,6 +75,56 @@ begin
       result := (first.Y-last.Y) / (first.X-last.X);
 end;
 
+{
+procedure TFrmSHPImage.SwapInt(var v0, v1 : integer);
+var
+   tmp : integer;
+begin
+   v0 := tmp;
+   v0 := v1;
+   v1 := tmp;
+end;
+
+
+procedure TFrmSHPImage.Line(x0, y0, x1, y1 : integer; var pixels : TPixels);
+var
+   steep : boolean;
+   deltaX, deltaY,
+   yStep, error,
+   x, y : integer;
+begin
+   steep := abs(y1 - y0) > abs(x1 - x0);
+   if steep then begin
+      SwapInt(x0, y0);
+      SwapInt(x1, y1);
+   end;
+   if x0 > x1 then begin
+      SwapInt(x0, x1);
+      SwapInt(y0, y1);
+   end;
+
+   deltaX := x1 - x0;
+   deltaY := abs(y1 - y0);
+   error := deltaX / 2;
+   y := y0;
+   if(y0 < y1) then 
+      yStep := 1
+   else
+      yStep := -1;
+   for x := x0 to x1 then begin
+      if steep then 
+         pixels[y, x] := 1
+      else
+         pixels[x, y] := 1;
+      error := error - deltaY;
+      if error < 0 then begin
+         y := y + yStep;
+         error := error + deltaX;
+      end;
+   end;
+end;
+}
+
 
 //---------------------------------------------
 // Draw Straight Line - Preview
