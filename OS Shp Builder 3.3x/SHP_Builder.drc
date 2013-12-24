@@ -74,9 +74,9 @@
 #define pnglang_EPNGUnknownPalEntryText 65245
 #define pnglang_EPNGUnknownCriticalChunkText 65246
 #define pnglang_EPNGUnknownCompressionText 65247
-#define ComStrs_sRichEditSaveFail 65248
-#define ComStrs_sPageIndexError 65249
-#define ComStrs_sInvalidComCtl32 65250
+#define ComConst_SNoMethod 65248
+#define ComConst_SVarNotObject 65249
+#define ComConst_STooManyParams 65250
 #define XMLConst_SDuplicateRegistration 65251
 #define XMLConst_SNoMatchingDOMVendor 65252
 #define XMLConst_SNoDOMNodeEx 65253
@@ -90,22 +90,22 @@
 #define XMLConst_SInvalidNodeType 65261
 #define XMLConst_SMismatchedRegItems 65262
 #define XMLConst_SNotSingleTextNode 65263
-#define ComConst_STooManyParams 65264
-#define JConsts_sChangeJPGSize 65265
-#define JConsts_sJPEGError 65266
-#define JConsts_sJPEGImageFile 65267
-#define ComStrs_sTabFailClear 65268
-#define ComStrs_sTabFailDelete 65269
-#define ComStrs_sTabFailRetrieve 65270
-#define ComStrs_sTabFailGetObject 65271
-#define ComStrs_sTabFailSet 65272
-#define ComStrs_sTabFailSetObject 65273
-#define ComStrs_sTabMustBeMultiLine 65274
-#define ComStrs_sInvalidIndex 65275
-#define ComStrs_sInsertError 65276
-#define ComStrs_sInvalidOwner 65277
-#define ComStrs_sRichEditInsertError 65278
-#define ComStrs_sRichEditLoadFail 65279
+#define ComStrs_sTabFailGetObject 65264
+#define ComStrs_sTabFailSet 65265
+#define ComStrs_sTabFailSetObject 65266
+#define ComStrs_sTabMustBeMultiLine 65267
+#define ComStrs_sInvalidIndex 65268
+#define ComStrs_sInsertError 65269
+#define ComStrs_sInvalidOwner 65270
+#define ComStrs_sRichEditInsertError 65271
+#define ComStrs_sRichEditLoadFail 65272
+#define ComStrs_sRichEditSaveFail 65273
+#define ComStrs_sPageIndexError 65274
+#define ComStrs_sInvalidComCtl32 65275
+#define JConsts_sChangeJPGSize 65276
+#define JConsts_sJPEGError 65277
+#define JConsts_sJPEGImageFile 65278
+#define ComConst_SOleError 65279
 #define Consts_SMultiSelectRequired 65280
 #define Consts_SErrorSettingPath 65281
 #define Consts_SSeparator 65282
@@ -119,9 +119,9 @@
 #define Consts_SUTF8Encoding 65290
 #define Consts_SUTF7Encoding 65291
 #define Consts_SPageControlNotSet 65292
-#define ComConst_SOleError 65293
-#define ComConst_SNoMethod 65294
-#define ComConst_SVarNotObject 65295
+#define ComStrs_sTabFailClear 65293
+#define ComStrs_sTabFailDelete 65294
+#define ComStrs_sTabFailRetrieve 65295
 #define Consts_sAllFilter 65296
 #define Consts_SInsertLineError 65297
 #define Consts_SInvalidClipFmt 65298
@@ -430,9 +430,9 @@ BEGIN
 	pnglang_EPNGUnknownPalEntryText,	"There is no such palette entry."
 	pnglang_EPNGUnknownCriticalChunkText,	"This \"Portable Network Graphics\" image contains an unknown critical part which could not be decoded."
 	pnglang_EPNGUnknownCompressionText,	"This \"Portable Network Graphics\" image is encoded with an unknown compression scheme which could not be decoded."
-	ComStrs_sRichEditSaveFail,	"Failed to Save Stream"
-	ComStrs_sPageIndexError,	"%d is an invalid PageIndex value.  PageIndex must be between 0 and %d"
-	ComStrs_sInvalidComCtl32,	"This control requires version 4.70 or greater of COMCTL32.DLL"
+	ComConst_SNoMethod,	"Method '%s' not supported by automation object"
+	ComConst_SVarNotObject,	"Variant does not reference an automation object"
+	ComConst_STooManyParams,	"Dispatch methods do not support more than 64 parameters"
 	XMLConst_SDuplicateRegistration,	"\"%s\" DOMImplementation already registered"
 	XMLConst_SNoMatchingDOMVendor,	"No matching DOM Vendor: \"%s\""
 	XMLConst_SNoDOMNodeEx,	"Selected DOM Vendor does not support this property or method"
@@ -446,13 +446,6 @@ BEGIN
 	XMLConst_SInvalidNodeType,	"Invalid node type"
 	XMLConst_SMismatchedRegItems,	"Mismatched paramaters to RegisterChildNodes"
 	XMLConst_SNotSingleTextNode,	"Element does not contain a single text node"
-	ComConst_STooManyParams,	"Dispatch methods do not support more than 64 parameters"
-	JConsts_sChangeJPGSize,	"Cannot change the size of a JPEG image"
-	JConsts_sJPEGError,	"JPEG error #%d"
-	JConsts_sJPEGImageFile,	"JPEG Image File"
-	ComStrs_sTabFailClear,	"Failed to clear tab control"
-	ComStrs_sTabFailDelete,	"Failed to delete tab at index %d"
-	ComStrs_sTabFailRetrieve,	"Failed to retrieve tab at index %d"
 	ComStrs_sTabFailGetObject,	"Failed to get object at index %d"
 	ComStrs_sTabFailSet,	"Failed to set tab \"%s\" at index %d"
 	ComStrs_sTabFailSetObject,	"Failed to set object at index %d"
@@ -462,6 +455,13 @@ BEGIN
 	ComStrs_sInvalidOwner,	"Invalid owner"
 	ComStrs_sRichEditInsertError,	"RichEdit line insertion error"
 	ComStrs_sRichEditLoadFail,	"Failed to Load Stream"
+	ComStrs_sRichEditSaveFail,	"Failed to Save Stream"
+	ComStrs_sPageIndexError,	"%d is an invalid PageIndex value.  PageIndex must be between 0 and %d"
+	ComStrs_sInvalidComCtl32,	"This control requires version 4.70 or greater of COMCTL32.DLL"
+	JConsts_sChangeJPGSize,	"Cannot change the size of a JPEG image"
+	JConsts_sJPEGError,	"JPEG error #%d"
+	JConsts_sJPEGImageFile,	"JPEG Image File"
+	ComConst_SOleError,	"OLE error %.8x"
 	Consts_SMultiSelectRequired,	"Multiselect mode must be on for this feature"
 	Consts_SErrorSettingPath,	"Error setting path: \"%s\""
 	Consts_SSeparator,	"Separator"
@@ -475,9 +475,9 @@ BEGIN
 	Consts_SUTF8Encoding,	"UTF-8"
 	Consts_SUTF7Encoding,	"UTF-7"
 	Consts_SPageControlNotSet,	"PageControl must first be assigned"
-	ComConst_SOleError,	"OLE error %.8x"
-	ComConst_SNoMethod,	"Method '%s' not supported by automation object"
-	ComConst_SVarNotObject,	"Variant does not reference an automation object"
+	ComStrs_sTabFailClear,	"Failed to clear tab control"
+	ComStrs_sTabFailDelete,	"Failed to delete tab at index %d"
+	ComStrs_sTabFailRetrieve,	"Failed to retrieve tab at index %d"
 	Consts_sAllFilter,	"All"
 	Consts_SInsertLineError,	"Unable to insert a line"
 	Consts_SInvalidClipFmt,	"Invalid clipboard format"

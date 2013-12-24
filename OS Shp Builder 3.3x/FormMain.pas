@@ -1712,7 +1712,7 @@ begin
    TbShowCenter.enabled := isEditable;
    TbPreviewWindow.enabled := isEditable;
    // TODO: enable showgrid
-   TbShowGrid.enabled := true;
+   TbShowGrid.enabled := false;
 
    ools1.Visible := isEditable;
    Undo1.Visible := isEditable;
