@@ -134,6 +134,8 @@ type
 
       procedure SelectNextFrame;
       procedure SelectPrecedingFrame;
+
+      // Properties
       procedure SetFrameIndex(v : integer);
       procedure SetBackgroundEnabled(Value: boolean);
    end;
@@ -1673,6 +1675,8 @@ begin
    // Update Palette
    if FrmMain.ActiveData^.Filename <> FrmMain.CurrentPaletteID then
       FrmMain.cnvPalette.Repaint;
+
+   FrmMain.RefreshGridUIComponents;
 
    // Update Active/Shadow Colours
    SetShadowMode(shadowmode);
