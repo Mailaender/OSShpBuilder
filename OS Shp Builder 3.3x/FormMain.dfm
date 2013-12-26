@@ -1366,6 +1366,7 @@ object SHPBuilderFrmMain: TSHPBuilderFrmMain
         DropdownMenu = GridPopup
         ImageIndex = 22
         Style = tbsDropDown
+        OnClick = TbShowGridClick
       end
       object TbPreviewWindow: TToolButton
         Left = 148

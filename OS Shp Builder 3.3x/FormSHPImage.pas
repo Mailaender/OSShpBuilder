@@ -14,7 +14,7 @@ type
 
    TColorArray = Array [0..MaxInt div SizeOf(TRGB32) - 1] of TRGB32;
    TScanline = ^TColorArray;
-   TCell = array of array of integer;
+   TPixels = array of array of integer;
 
    TFrmSHPImage = class(TForm)
       PaintAreaPanel: TPanel;
@@ -68,7 +68,7 @@ type
 
       function GetOppositeRGB32(const color : TRGB32) : TRGB32;
       function ColorToRGB32(const color : TColor) : TRGB32;
-      procedure InitCellShape(var cell : TCell);
+      procedure InitShape(var shape : TPixels; width, height : integer);
 
       // Tool Methods
       procedure SelectColor(x, y : integer);
@@ -114,7 +114,8 @@ type
       Zoom : byte;
       MaxZoom : byte;
       FrameIndex : longword;
-      GridSize : byte;
+      CellWidth : integer;
+      CellHeight : integer;
       alg : byte;// Algorithm for converting external bitmaps to Shp frame
       
       DefultCursor : integer;
@@ -207,7 +208,7 @@ begin
 end;
 
 
-///---------------------------------------------
+//---------------------------------------------
 // Draw Bitmap Pixel with Scanline
 //---------------------------------------------
 procedure TFrmSHPImage.DrawBitmapPixel(var bmp : TBitmap; x, y : integer; color : TColor);
@@ -223,31 +224,66 @@ end;
 
 //---------------------------------------------
 // Draw Grid
-// TODO: rework grid
 //---------------------------------------------
 procedure TFrmSHPImage.DrawGrid(var bmp : TBitmap; color : TRGB32);
 var 
-   cell : TCell;
-   cellWidth, cellHeight : integer;
-   x, y, i: integer;
+   shape : TPixels;
+   x, y, count, center, mid, shapeWidth, shapeHeight : integer;
    ShpContext : TSHPImageData;
    line : TScanline;
+   lineStart, iLineStart, iX, iY, iCount, i, iHeight : integer;
 begin
    ShpContext := Data;
 
-   cellWidth := 48;
-   cellHeight := 25;
-   InitCellShape(cell);
+   shapeWidth := CellWidth;
+   shapeHeight := CellHeight shr 1;
+   InitShape(shape, CellWidth, CellHeight);
+   
+   center := bmp.Width shr 1;
+   mid := bmp.Height shr 1;
 
-   for y := 0 to  cellHeight - 1 do begin
-      line := bmp.Scanline[y];
+   count := 0;
+   lineStart := center - (shapeWidth shr 1);
+   y := mid;
 
-      for i := 0 to 7 do begin
-         x := cell[y, i];
-         if x = -1 then
-            Break;
-         line[x] := color; 
+
+   while(y < bmp.Height) do begin
+      count := count + 1;
+
+      // Shape Height
+      for iHeight := 0 to shapeHeight - 1 do begin
+         iY := y;
+         inc(y);
+         if iY > bmp.Height - 1 then break;
+
+         line := bmp.Scanline[ iY ];
+         
+
+         // Repeat shape line along X axis.
+         iLineStart := lineStart;
+         iCount := 0;
+         while (iCount < count) do begin
+            x := iLineStart;
+            inc(iLineStart, shapeWidth);
+            inc(iCount);
+            
+            // Shape Line
+            for i := 0 to 7 do begin
+               iX := shape[iHeight][i];
+               if iX = -1 then break;
+
+               inc(iX, x);
+               if (iX < 0) then continue;
+               if (iX > bmp.Width - 1) then break;
+
+               line[ iX ] := color;
+            end;
+            
+         end;
+         
       end;
+
+      lineStart := lineStart - (shapeWidth shr 1);
    end;
 
 end;
@@ -471,61 +507,39 @@ end;
 
 
 //---------------------------------------------
-// Create Cell Shape (ts)
+// Create Shape (top part of cell)
+// Note: not flexible at all, but will work for TS/RA2 cells.
 //---------------------------------------------
-procedure TFrmSHPImage.InitCellShape(var cell : TCell);
+procedure TFrmSHPImage.InitShape(var shape : TPixels; width, height : integer);
 var
-   Width, Height,
-   mid, bottom, sep, x, y, i : integer;
+   center, mid, bottom, sep, x, y, i : integer;
+   dotWidth, dotHeight : integer;
 begin
-   // 48 x 25 = (w x h)
-   Width := 48;
-   Height := 25;
-   SetLength(cell, Height, 8);
-   mid := round(Height / 2);
-   bottom := Height - 1;
+   // TS:  48 x 25 = (w x h)
+   // RA2: 60 x 31
+   mid := Height shr 1;
+   center := Width shr 1;
+   SetLength(shape, mid, 8);
 
-   cell[0][0] := 22;
-   cell[0][1] := 23;
-   cell[0][2] := 24;
-   cell[0][3] := 25;
-   cell[0][4] := -1;
+   // Top
+   x := center - 2;
+   for i := 0 to 3 do begin
+      shape[0][i] := x + i;
+   end;
+   shape[0][4] := -1;
 
+   // Top half.
    sep := 0;
-   x := round(Width / 2) - 4;
+   x := center - 4;
    for y := 1 to mid - 1 do begin
       for i := 0 to 3 do
-         cell[y, i] := x + i;
+         shape[y, i] := x + i;
       for i := 0 to 3 do
-         cell[y, i + 4] := x + 4 + i + sep;
+         shape[y, i + 4] := x + 4 + i + sep;
 
       x := x - 2;
       sep := sep + 4;
    end;
-
-   cell[mid][0] := 0;
-   cell[mid][1] := 1;
-   cell[mid][2] := 46;
-   cell[mid][3] := 47;
-   cell[mid][4] := -1;
-
-   sep := Width - 8;
-   x := 0;
-   for y := mid + 1 to Height - 2 do begin
-      for i := 0 to 3 do
-         cell[y, i] := x + i;
-      for i := 0 to 3 do
-         cell[y, i + 4] := x + 4 + i + sep;
-
-      x := x + 2;
-      sep := sep - 4;
-   end;
-
-   cell[bottom][0] := 22;
-   cell[bottom][1] := 23;
-   cell[bottom][2] := 24;
-   cell[bottom][3] := 25;
-   cell[bottom][4] := -1;
 end;
 
 
@@ -548,7 +562,8 @@ begin
    bmp.Height := ShpContext^.SHP.Header.Height;
    bmp.PixelFormat := pf32bit;
 
-   bgColor := ColorToRGB32( ShpContext^.ShpPalette[BackGroundColour] );
+   // TODO: how should this behave? User selected BackgroundColor or first palette color
+   bgColor := ColorToRGB32( ShpContext^.ShpPalette[0] );
    gridColor := GetOppositeRGB32( bgColor );
 
    // DRAW BACKGROUND

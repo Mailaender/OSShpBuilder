@@ -19,8 +19,8 @@ uses
 Const
    SHP_BUILDER_VER = '3.37';
 {$IFDEF _BETA}
-   SHP_BUILDER_BETA_VER = '20 (z5)';
-   SHP_BUILDER_INTERNAL_VERSION = '3.369920.z5';
+   SHP_BUILDER_BETA_VER = '20 (z6)';
+   SHP_BUILDER_INTERNAL_VERSION = '3.369920.z6';
 {$ENDIF}
    SHP_BUILDER_TITLE = ' Open Source SHP Builder';
    SHP_BUILDER_BY = 'Banshee & Stucuk';
@@ -747,6 +747,7 @@ type
       function GetPaletteFileName(const filename, game: string): string;
       function BlockReadString(var _F: File) : string;
       procedure BlockWriteString(var _F: File; const _MyString: string);
+    procedure TbShowGridClick(Sender: TObject);
    private
       { Private declarations }
       ColourSchemes : TColourSchemes;
@@ -756,6 +757,8 @@ type
       OpenPaletteDir : string[255];
       SaveDir : string[255];      
       ExportDir : string[255];
+
+      LastSelectedGridType : byte; // 0 : TS, 1 : RA2
 
       procedure LoadConfig1(var F:file);
       procedure LoadConfig2(var F:file);
@@ -1142,6 +1145,7 @@ begin
    ActiveForm := nil;
    SelectionPosition.X := 0;
    SelectionPosition.Y := 0;
+   LastSelectedGridType := 0; // TS
 
    // Removes palette flickering.
    cnvPalette.ControlStyle := cnvPalette.ControlStyle + [csopaque];
@@ -1711,8 +1715,7 @@ begin
    TbSaveFile.enabled := isEditable;
    TbShowCenter.enabled := isEditable;
    TbPreviewWindow.enabled := isEditable;
-   // TODO: enable showgrid
-   TbShowGrid.enabled := false;
+   TbShowGrid.enabled := isEditable;
 
    ools1.Visible := isEditable;
    Undo1.Visible := isEditable;
@@ -6843,6 +6846,26 @@ begin
 end;
 
 
+//---------------------------------------------
+// DropDownList Show Grid Button Click
+//---------------------------------------------
+procedure TSHPBuilderFrmMain.TbShowGridClick(Sender: TObject);
+begin
+   if (ActiveForm^.ShowGrid) then begin
+      ShowNone1Click(nil);
+   end
+   else begin
+      if LastSelectedGridType = 0 then 
+         SGrids1Click(nil)
+      else
+         RA2Grids1Click(nil);
+  end;
+end;
+
+
+//---------------------------------------------
+// DropDownList Show Grid None Button Click
+//---------------------------------------------
 procedure TSHPBuilderFrmMain.ShowNone1Click(Sender: TObject);
 begin
    // Doesn't show grid.
@@ -6851,20 +6874,32 @@ begin
    ActiveForm^.RefreshImage1;
 end;
 
+
+//---------------------------------------------
+// DropDownList Show Grid TS Button Click
+//---------------------------------------------
 procedure TSHPBuilderFrmMain.SGrids1Click(Sender: TObject);
 begin
    // Show TS Grid;
    ActiveForm^.ShowGrid := true;
-   ActiveForm^.GridSize := 24;
+   ActiveForm^.CellWidth := 48;
+   ActiveForm^.CellHeight := 25;
+   LastSelectedGridType := 0;
    TbShowGrid.ImageIndex := 0;
    ActiveForm^.RefreshImage1;
 end;
 
+
+//---------------------------------------------
+// DropDownList Show Grid RA2 Button Click
+//---------------------------------------------
 procedure TSHPBuilderFrmMain.RA2Grids1Click(Sender: TObject);
 begin
    // Show RA2 Grid;
    ActiveForm^.ShowGrid := true;
-   ActiveForm^.GridSize := 30;
+   ActiveForm^.CellWidth := 60;
+   ActiveForm^.CellHeight := 31;
+   LastSelectedGridType := 1;
    TbShowGrid.ImageIndex := 2;
    ActiveForm^.RefreshImage1;
 end;

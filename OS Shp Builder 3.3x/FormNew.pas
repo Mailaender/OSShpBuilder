@@ -29,6 +29,8 @@ type
       procedure txtHeightChange(Sender: TObject);
       procedure txtFramesChange(Sender: TObject);
       procedure CbxGameChange(Sender: TObject);
+    procedure OnKeyDown(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
    private
       { Private declarations }
    public
@@ -62,6 +64,17 @@ begin
    CbxGame.Images := FrmMain.ImageList;
    CbxGame.ItemIndex := 2;
    CbxType.ItemIndex := 0;
+end;
+
+procedure TFrmNew.OnKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+   if Key = VK_RETURN then  begin
+      btnOKClick(nil);
+   end
+   else if Key = VK_ESCAPE then begin
+      btnCancelClick(nil);
+   end;
 end;
 
 procedure TFrmNew.txtWidthChange(Sender: TObject);
