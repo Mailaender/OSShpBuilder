@@ -1,4 +1,15 @@
 #################
+## Delphi 2006
+#################
+*.dcu
+*.bak
+*.dat
+*.identcache
+*.map
+EasterEggText.exe
+
+
+#################
 ## Eclipse
 #################
 
