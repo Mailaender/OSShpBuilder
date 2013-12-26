@@ -72,13 +72,12 @@ object SHPBuilderFrmMain: TSHPBuilderFrmMain
     object lblBrush: TLabel
       Left = 0
       Top = 71
-      Width = 160
+      Width = 30
       Height = 13
       Align = alTop
       Caption = ' Brush'
       Color = clActiveBorder
       ParentColor = False
-      ExplicitWidth = 30
     end
     object BrushPanel: TPanel
       Left = 0

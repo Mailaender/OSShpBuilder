@@ -813,6 +813,9 @@ type
       function RunInstaller : boolean;
 
       procedure RefreshShpBackgroundUIComponents;
+      procedure RefreshGridUIComponents;
+      procedure UpdateFrameUIComponents;
+
       procedure SetBackgroundEnabled(enabled : boolean);
       procedure ResetTempView;
 
@@ -823,7 +826,7 @@ type
       procedure UndoUpdate(var UndoList :TUndoRedo);
       procedure RunAProgram (const theProgram, itsParameters, defaultDirectory : string);
       function RunAsAdmin(const _Filename: string; const _Parameters: string): Boolean;
-      procedure UpdateFrameUIComponents;
+      
    end;
 
 var
@@ -6845,6 +6848,29 @@ begin
    ShellExecute(Application.Handle,nil,HyperLink,'','',SW_SHOWNORMAL);
 end;
 
+
+//---------------------------------------------
+// Refresh Grid UI Components
+// TODO : rework this method.
+//---------------------------------------------
+procedure TSHPBuilderFrmMain.RefreshGridUIComponents;
+begin
+   if ActiveForm^.CellWidth = 60 then begin
+      // RA2
+      LastSelectedGridType := 1;
+      TbShowGrid.ImageIndex := 2;
+   end
+   else begin
+      // TS by default
+      LastSelectedGridType := 0;
+      TbShowGrid.ImageIndex := 0;
+   end;
+
+   if not ActiveForm^.ShowGrid then begin
+      // No grid
+      TbShowGrid.ImageIndex := 22;
+   end;
+end;
 
 //---------------------------------------------
 // DropDownList Show Grid Button Click
