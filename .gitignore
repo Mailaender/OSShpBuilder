@@ -2,10 +2,18 @@
 ## Delphi 2006
 #################
 *.dcu
-*.bak
-*.dat
+*.~*
+*.local
 *.identcache
+__history
+*.drc
 *.map
+*.dll
+*.bpl
+*.dcp
+*.so
+*.apk
+bin/*
 EasterEggText.exe
 
 
