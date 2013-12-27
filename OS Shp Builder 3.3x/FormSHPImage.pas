@@ -67,6 +67,7 @@ type
       procedure DrawBitmapPixel(var bmp : TBitmap; x, y : integer; color : TColor);
 
       function GetOppositeRGB32(const color : TRGB32) : TRGB32;
+      function GetGrayscaleRGB32(const color : TRGB32) : TRGB32;
       function ColorToRGB32(const color : TColor) : TRGB32;
       procedure InitShape(var shape : TPixels; width, height : integer);
 
@@ -211,6 +212,21 @@ end;
 
 
 //---------------------------------------------
+// Get Grayscale RGB32 Color
+//---------------------------------------------
+function TFrmSHPImage.GetGrayscaleRGB32(const color : TRGB32) : TRGB32;
+var
+   gray : integer;
+begin
+   Gray := Round(color.R * 0.3 + color.G * 0.59 + color.B * 0.11);
+   Result.R := Gray;
+   Result.G := Gray;
+   Result.B := Gray;
+   Result.A := color.A;
+end;
+
+
+//---------------------------------------------
 // Draw Bitmap Pixel with Scanline
 //---------------------------------------------
 procedure TFrmSHPImage.DrawBitmapPixel(var bmp : TBitmap; x, y : integer; color : TColor);
@@ -226,6 +242,7 @@ end;
 
 //---------------------------------------------
 // Draw Grid
+// TODO: add option to draw fixed color, or opposite.
 //---------------------------------------------
 procedure TFrmSHPImage.DrawGrid(var bmp : TBitmap; color : TRGB32);
 var 
@@ -242,7 +259,7 @@ begin
    InitShape(shape, CellWidth, CellHeight);
    
    center := bmp.Width shr 1;
-   mid := bmp.Height shr 1;
+   mid := (bmp.Height shr 1) - 1; 
 
    count := 0;
    lineStart := center - (shapeWidth shr 1);
@@ -278,7 +295,7 @@ begin
                if (iX < 0) then continue;
                if (iX > bmp.Width - 1) then break;
 
-               line[ iX ] := color;
+               line[ iX ] := GetOppositeRGB32( line[iX] );
             end;
             
          end;
@@ -293,6 +310,7 @@ end;
 
 //---------------------------------------------
 // Draw Cross (center)
+// TODO: add option to draw fixed color, or opposite.
 //---------------------------------------------
 procedure TFrmSHPImage.DrawCross(var bmp : TBitmap; color : TRGB32);
 var
@@ -336,7 +354,7 @@ begin
       inc(y);
 
       for x := 0 to bmp.Width - 1 do begin
-         line[x] := color;
+         line[x] := GetOppositeRGB32(line[x]);
       end;
    end;
 end;
@@ -487,6 +505,8 @@ var
    x, y, 
    xx, yy, 
    maxX, maxY : integer;
+   color : TRGB32;
+   bgColor : TRGB32;
 begin
    ShpContext := Data;
 
@@ -502,7 +522,11 @@ begin
          if ( xx < 0) then continue;
          if ( xx >= ShpContext^.Shp.Header.Width ) then continue;
 
-         line[xx] := ColorToRGB32(OpositeColour( ShpContext^.SHPPalette[ s.Layer[x][y] ]  ));
+         if (not BackgroundEnabled) and (s.Layer[x][y] = 0) and (ShpContext^.Shp.Data[FrameIndex].FrameImage[xx, yy] <> 0) then
+            line[xx] := GetGrayscaleRGB32( ColorToRGB32( ShpContext^.ShpPalette[ShpContext^.Shp.Data[FrameIndex].FrameImage[xx, yy]]))
+         else
+            line[xx] := ColorToRGB32(OpositeColour( ShpContext^.SHPPalette[ s.Layer[x][y] ]  ));
+
       end;
    end;
 end;
@@ -564,7 +588,7 @@ begin
    bmp.Height := ShpContext^.SHP.Header.Height;
    bmp.PixelFormat := pf32bit;
 
-   // TODO: how should this behave? User selected BackgroundColor or first palette color
+   // TODO : remove or change the way the gridColor is set.
    bgColor := ColorToRGB32( ShpContext^.ShpPalette[0] );
    gridColor := GetOppositeRGB32( bgColor );
 
@@ -572,17 +596,19 @@ begin
    DrawFrameBackground(bmp, bgColor);
    
 
+   // DRAW FRAME
+   DrawFrame(bmp);
+   
+
    // DRAW CROSS
    if show_center then
       DrawCross(bmp, gridColor);
+
 
    // DRAW GRID
    if ShowGrid then
       DrawGrid(bmp, gridColor);
 
-   // DRAW FRAME
-   DrawFrame(bmp);
-   
 
    // DRAW TOOL PREVIEW
    if (FrmMain.PreviewBrush) and 
@@ -593,7 +619,7 @@ begin
    // DRAW SELECTION
    if (FrmMain.DrawMode = dmselect) or (FrmMain.DrawMode = dmselectmove) then
       DrawSelection(bmp);
-   
+
 
    //image1.Picture.Bitmap.Width := bmp.Width;
    //image1.Picture.Bitmap.Height := bmp.Height;
@@ -696,6 +722,7 @@ var
    SHPData: TSHPImageData;
 begin
    BackgroundEnabled := Value;
+   RefreshImage1;
 end;
 
 
