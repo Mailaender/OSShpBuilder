@@ -748,6 +748,7 @@ type
       function BlockReadString(var _F: File) : string;
       procedure BlockWriteString(var _F: File; const _MyString: string);
     procedure TbShowGridClick(Sender: TObject);
+    procedure lblBackGroundColourDblClick(Sender: TObject);
    private
       { Private declarations }
       ColourSchemes : TColourSchemes;
@@ -812,7 +813,7 @@ type
       function IsInstalled : boolean;
       function RunInstaller : boolean;
 
-      procedure RefreshShpBackgroundUIComponents;
+      procedure RefreshBackgroundUIComponents;
       procedure RefreshGridUIComponents;
       procedure UpdateFrameUIComponents;
 
@@ -1083,6 +1084,15 @@ begin
          // uninstall code should go here.
       end;
    end;
+end;
+
+
+//---------------------------------------------
+// Label Background Color Double Click
+//---------------------------------------------
+procedure TSHPBuilderFrmMain.lblBackGroundColourDblClick(Sender: TObject);
+begin
+   ToogleBackgroundColourMenuItemClick(nil); 
 end;
 
 
@@ -1750,6 +1760,8 @@ begin
    Current_Frame.Enabled := isEditable;
 
    Autoshadows1.Enabled := false;
+
+   lblBackGroundColour.Enabled := isEditable;
 end;
 
 
@@ -3408,7 +3420,7 @@ begin
       ActiveForm^.SetBackgroundEnabled(enabled);
 
    OtherOptionsData.BackgroundEnabled := enabled;
-   RefreshShpBackgroundUIComponents;
+   RefreshBackgroundUIComponents;
 end;
 
 
@@ -3467,7 +3479,7 @@ end;
 //---------------------------------------------
 // Refresh SHP Background Colour UI Components
 //---------------------------------------------
-procedure TSHPBuilderFrmMain.RefreshShpBackgroundUIComponents;
+procedure TSHPBuilderFrmMain.RefreshBackgroundUIComponents;
 var
   Data : TSHPImageData;
   enabled : boolean;
@@ -3482,17 +3494,18 @@ begin
       if ActiveForm^.BackgroundEnabled then
       begin
          lblBackGroundColour.Caption := IntToStr(ActiveForm^.BackGroundColour) + ' (0x' + IntToHex(ActiveForm^.BackGroundColour,3) + ')';
-         pnlBackGroundColour.Color := Data^.SHPPalette[ActiveForm^.BackGroundColour];
+         //pnlBackGroundColour.Color := Data^.SHPPalette[ActiveForm^.BackGroundColour];
       end
       else      
       begin
          lblBackGroundColour.Caption := '< OFF >';
-         pnlBackGroundColour.Color := Data^.Shadow_Match[ActiveForm^.BackGroundColour].Original;
+         //pnlBackGroundColour.Color := Data^.Shadow_Match[ActiveForm^.BackGroundColour].Original;
       end;
    end;
    
+   pnlBackGroundColour.Color := Data^.SHPPalette[ActiveForm^.BackGroundColour];
    ToogleBackgroundColourMenuItem.Checked := enabled;
-   pnlBackGroundColour.Enabled := enabled;   
+   //pnlBackGroundColour.Enabled := enabled;   
 end;
 
 

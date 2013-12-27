@@ -709,7 +709,7 @@ begin
    SHPData := Data;
    BackGroundColour := Col;
    
-   FrmMain.RefreshShpBackgroundUIComponents;
+   FrmMain.RefreshBackgroundUIComponents;
    FrmMain.cnvPalette.Repaint;
 end;
 
@@ -1719,7 +1719,7 @@ begin
    end;
 
    // Refresh Background UI Components
-   FrmMain.RefreshShpBackgroundUIComponents;
+   FrmMain.RefreshBackgroundUIComponents;
 
    // Update Undo
    FrmMain.UndoUpdate(FrmMain.ActiveData^.UndoList);
