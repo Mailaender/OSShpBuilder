@@ -14,6 +14,7 @@ __history
 *.so
 *.apk
 bin/*
+SHP_BUILDER.dat
 EasterEggText.exe
 
 
