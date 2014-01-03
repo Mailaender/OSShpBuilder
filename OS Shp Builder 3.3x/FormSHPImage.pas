@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, ComCtrls, StdCtrls, Spin, SHP_file, SHP_Shadows,
-  SHP_Image, Palette, Undo_Redo, Mouse, math, XPMan, SHP_Engine_CCMs, Colour_list;
+  SHP_Image, Palette, Undo_Redo, MouseUtil, math, XPMan, SHP_Engine_CCMs, Colour_list;
 
 type
    TRGB32 = packed record
@@ -21,8 +21,11 @@ type
       Image1: TImage;
       ScrollBox1: TScrollBox;
       XPManifest: TXPManifest;
+    imgBackground: TImage;
       procedure ResizePaintArea(var Image1 : TImage; var PaintAreaPannel: TPanel);
-      procedure RefreshImage1;
+      procedure RefreshImage;
+      procedure RefreshBackgroundImage;
+
       procedure SetShadowColour(Col: Integer);
       procedure SetActiveColour(Col: Integer);
       procedure SetBackGroundColour(Col: Integer);
@@ -38,13 +41,18 @@ type
       procedure FormActivate(Sender: TObject);
       procedure FormResize(Sender: TObject);
       procedure FormCreate(Sender: TObject);
-      procedure AutoGetCursor;
+      procedure AutoSelectCursor;
       procedure WorkOutImageClick(var SHP: TSHP; var X,Y : integer; var OutOfRange : boolean; zoom:byte);
       procedure Image1DblClick(Sender: TObject);
       procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+      procedure FormKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
    private
       { Private declarations }
       Click : integer;
+
+      LastMousePos : TPoint;
+      IsDragging : boolean;
+      IsSpacePressed : boolean;
 
       // Utilities
       function GetWorkingColorIndex : byte;
@@ -55,6 +63,7 @@ type
       procedure DrawSelectedArea(var s : TSelection; var bmp : TBitmap);
       procedure DrawSelectionLayer(var s : TSelection; var  bmp : TBitmap);
 
+      procedure DrawChessboardGrid(Target: TBitmap; Size: Integer; Color1, Color2: TColor);
       procedure DrawGrid(var  bmp : TBitmap; color : TRGB32);
       procedure DrawCross(var bmp : TBitmap; color : TRGB32);
       procedure DrawToolPreview(var bmp : TBitmap);
@@ -95,6 +104,13 @@ type
       procedure CopySelectionToLayer(var s : TSelection);
       procedure CopyPreviewToFrame;
 
+
+      // Dragging Methods
+      procedure OnDragBegin;
+      procedure OnDragging;
+      procedure OnDragEnd;
+
+
    public
       { Public declarations }
       First, 
@@ -104,7 +120,6 @@ type
       ActiveColour, 
       ShadowColour,
       BackGroundColour : byte;
-      //DrawingColor : TColor;
 
       BackgroundEnabled: boolean;
       ShadowMode : boolean;
@@ -144,23 +159,64 @@ type
 implementation
 
 uses FormMain, FormPreview, OS_SHP_Tools, SHP_DataMatrix, shp_engine;
-
-
 {$R *.dfm}
+
+
+
+//---------------------------------------------
+// DRAG BEGIN
+//---------------------------------------------
+procedure TFrmSHPImage.OnDragBegin;
+begin
+   IsDragging := true;
+   LastMousePos := ScreenToClient( Mouse.CursorPos );
+   //Cursor := HandClose
+end;
+
+
+//---------------------------------------------
+// DRAG MOVE
+//---------------------------------------------
+procedure TFrmSHPImage.OnDragging;
+var
+   deltaX, deltaY : integer;
+   currentMousePos : TPoint;
+begin
+   currentMousePos := ScreenToClient( Mouse.CursorPos );
+   deltaX := currentMousePos.X - LastMousePos.X;
+   deltaY := currentMousePos.Y - LastMousePos.Y;  
+
+   
+   PaintAreaPanel.Left := PaintAreaPanel.Left + deltaX;
+   PaintAreaPanel.Top := PaintAreaPanel.Top + deltaY;
+   LastMousePos := currentMousePos;
+end;
+
+
+//---------------------------------------------
+// DRAG END
+//---------------------------------------------
+procedure TFrmSHPImage.OnDragEnd;
+begin
+   IsDragging := false;
+   AutoSelectCursor;
+end;
+
+
 //---------------------------------------------
 // Resize Paint Area
 //---------------------------------------------
 procedure TFrmSHPImage.ResizePaintArea(var Image1 : TImage; var PaintAreaPannel: TPanel);
 var
-   SHPData : TSHPImageData;
+   ShpContext : TSHPImageData;
    width, height : word;
 begin
    if Data = nil then exit;
-   SHPData := Data;
+   ShpContext := Data;
 
    // Cache basic values
-   width := (SHPData^.SHP.header.Width * Zoom);
-   height := (SHPData^.SHP.header.Height * Zoom);
+   width := (ShpContext^.SHP.header.Width * Zoom);
+   height := (ShpContext^.SHP.header.Height * Zoom);
 
    if WindowState = WSNormal then
    begin
@@ -173,10 +229,14 @@ begin
    PaintAreaPanel.Width := Width;
    PaintAreaPanel.Height := Height;
 
-   // Set image width n height
-   Image1.Picture.Bitmap.Width := width;
-   Image1.Picture.Bitmap.Height := height;
+   imgBackground.Width := Width;
+   imgBackground.Height := Height;
+   imgBackground.Picture.Bitmap.Width := width;
+   imgBackground.Picture.Bitmap.Height := height;
+   RefreshBackgroundImage;
 
+   // Set image width n height
+   Image1.Picture.Bitmap.SetSize(width, height);
    Image1.Width := Width;
    Image1.Height := Height;
 end;
@@ -196,8 +256,9 @@ begin
    Result.B := ( hexacolor^ and  $000000FF );
    Result.G := ( hexacolor^ and  $0000FF00 ) shr 8;
    Result.R := ( hexacolor^ and  $00FF0000 ) shr 16;
-   Result.A := ( hexacolor^ and  $FF000000 ) shr 32;
+   Result.A := 255;
 end;
+
 
 //---------------------------------------------
 // Get Opposite RGB32 Color
@@ -224,6 +285,30 @@ begin
    Result.B := Gray;
    Result.A := color.A;
 end;
+
+
+//---------------------------------------------
+// Draw Chessboard Grid
+//---------------------------------------------
+procedure TFrmSHPImage.DrawChessboardGrid(Target: TBitmap; Size: Integer; Color1, Color2: TColor);
+var
+   Tmp: TBitmap;
+begin
+   Tmp := TBitmap.Create;
+   try
+      Tmp.Canvas.Brush.Color := Color1;
+      Tmp.Width := 2 * Size;
+      Tmp.Height := 2 * Size;
+      Tmp.Canvas.Brush.Color := Color2;
+      Tmp.Canvas.FillRect(Rect(0, 0, Size, Size));
+      Tmp.Canvas.FillRect(Bounds(Size, Size, Size, Size));
+      Target.Canvas.Brush.Bitmap := Tmp;
+      Target.Canvas.FillRect(Rect(0, 0, Target.Width, Target.Height));
+   finally
+      Tmp.Free;
+   end;
+end;
+
 
 
 //---------------------------------------------
@@ -385,12 +470,14 @@ var
    x, y:   word;
    line : TScanline;
 begin 
+
    for y := 0 to bmp.Height - 1 do begin
       if ( y < 0) or (y >= bmp.Height) then ShowMessage( Format('DrawFrameBG: Scanline: %d', [y]) );
       line := bmp.Scanline[y];
 
-      for x := 0 to bmp.Width - 1 do 
+      for x := 0 to bmp.Width - 1 do begin
          line[x] := color;
+      end;
    end;   
 end;
 
@@ -571,9 +658,33 @@ end;
 
 
 //---------------------------------------------
+// Refresh Background Image (Chessboard)
+//---------------------------------------------
+procedure TFrmSHPImage.RefreshBackgroundImage;
+var
+   bmp : TBitmap;
+begin
+   bmp := TBitmap.Create;
+   bmp.SetSize(imgBackground.Width, imgBackground.Height);
+   bmp.PixelFormat := pf32bit;
+
+   DrawChessboardGrid(bmp, 10, clGray, clWhite);
+
+   imgBackground.Canvas.CopyRect( 
+      Bounds(0, 0, imgBackground.Picture.Bitmap.Width, imgBackground.Picture.Bitmap.Width), 
+      bmp.Canvas, 
+      Bounds(0, 0, bmp.Width, bmp.Height));
+   bmp.Free;
+
+   imgBackground.Picture.Bitmap.PixelFormat := pf32bit;
+   imgBackground.Refresh;
+end;
+
+
+//---------------------------------------------
 // Refresh Image (Frame)
 //---------------------------------------------
-procedure TFrmSHPImage.RefreshImage1;
+procedure TFrmSHPImage.RefreshImage;
 var
    ShpContext : TSHPImageData;
    bmp : TBitmap;
@@ -584,17 +695,17 @@ begin
    ShpContext := Data;
    
    bmp := TBitmap.Create;
-   bmp.Width := ShpContext^.SHP.Header.Width;
-   bmp.Height := ShpContext^.SHP.Header.Height;
+   bmp.Canvas.Brush.Handle;// ?? to make the bitmap transparent
+   bmp.SetSize(ShpContext^.SHP.Header.Width, ShpContext^.SHP.Header.Height);
    bmp.PixelFormat := pf32bit;
 
-   // TODO : remove or change the way the gridColor is set.
    bgColor := ColorToRGB32( ShpContext^.ShpPalette[0] );
    gridColor := GetOppositeRGB32( bgColor );
 
    // DRAW BACKGROUND
-   DrawFrameBackground(bmp, bgColor);
-   
+   if BackgroundEnabled then 
+      DrawFrameBackground(bmp, bgColor );
+
 
    // DRAW FRAME
    DrawFrame(bmp);
@@ -621,8 +732,7 @@ begin
       DrawSelection(bmp);
 
 
-   //image1.Picture.Bitmap.Width := bmp.Width;
-   //image1.Picture.Bitmap.Height := bmp.Height;
+
    image1.Picture.Bitmap.PixelFormat := pf32bit;
    image1.Canvas.CopyRect( 
       Bounds(0, 0, image1.Picture.Bitmap.Width, image1.Picture.Bitmap.Height), 
@@ -678,7 +788,7 @@ begin
    // Refresh palette (turn 2 to 256 or 256 to 2)
    FrmMain.cnvPalette.Refresh;
    // and refresh the image.
-   RefreshImage1;
+   RefreshImage;
 end;
 
 
@@ -722,7 +832,7 @@ var
    SHPData: TSHPImageData;
 begin
    BackgroundEnabled := Value;
-   RefreshImage1;
+   RefreshImage;
 end;
 
 
@@ -767,7 +877,7 @@ begin
 
    ResetSelection;
    FrameIndex := v;
-   RefreshImage1;
+   RefreshImage;
 
 
    // Update UI
@@ -873,7 +983,7 @@ begin
    end;
 
    FrmMain.ResetTempView;
-   RefreshImage1;
+   RefreshImage;
 end;
 
 
@@ -1157,7 +1267,7 @@ begin
       FrmMain.drawmode := dmselect;
    end;
 
-   RefreshImage1;
+   RefreshImage;
 end;
 
 
@@ -1193,7 +1303,7 @@ begin
 
       Last.X := x;
       Last.Y := y;
-      RefreshImage1;
+      RefreshImage;
    end;
 end;
 
@@ -1237,7 +1347,7 @@ begin
 
       Last.X := x;
       Last.Y := y;
-      RefreshImage1;
+      RefreshImage;
    end;
 end;
 
@@ -1277,7 +1387,7 @@ begin
    BrushTool(ShpContext^.SHP, FrmMain.TempView, FrmMain.TempViewLength, x, y, FrmMain.Brush_Type, 
       ShpContext^.SHPPalette[colorIndex]
       );
-   RefreshImage1;   
+   RefreshImage;   
 end;
 
 
@@ -1313,6 +1423,8 @@ begin
    else
       Click := 0;
 
+
+
    XX := X;
    YY := Y;
    WorkOutImageClick(ShpContext^.SHP, XX, YY, OutOfRange, zoom);
@@ -1329,6 +1441,7 @@ begin
          dmselect : SelectionOnMouseDown( XX, YY);
       end;
    end;
+
 end;
 
 
@@ -1422,6 +1535,7 @@ begin
    YY := Y;
    WorkOutImageClick(ShpContext^.SHP, XX, YY, OutOfRange, Zoom);
 
+
    case (FrmMain.DrawMode) of
       dmDraw : CopyPreviewToFrame;
       //dmCrash: Crash(ShpContext^.SHP, ShpContext^.SHPPalette, LastPreview.X, LastPreview.Y, FrameIndex, FrmMain.alg);
@@ -1472,7 +1586,7 @@ end;
 //---------------------------------------------
 // Auto Select Cursor for Image1
 //---------------------------------------------
-procedure TFrmSHPImage.AutoGetCursor;
+procedure TFrmSHPImage.AutoSelectCursor;
 begin
    if (FrmMain.SpbDraw.Down) or (FrmMain.SpbErase.Down) or (FrmMain.SpbDarkenLighten.Down) then
    begin
@@ -1500,7 +1614,7 @@ begin
       Image1.Cursor := CrArrow;
    end
    else
-      Image1.Cursor := MouseDraw;
+      Image1.Cursor := CrArrow;
 end;
 
 
@@ -1514,7 +1628,7 @@ begin
    SetActiveColour(ActiveColour);
 
    if FrmMain.ActiveForm = nil then
-      AutoGetCursor
+      AutoSelectCursor
    else
       Image1.Cursor := FrmMain.ActiveForm^.Image1.Cursor;
 
@@ -1810,7 +1924,7 @@ end;
 
 
 //---------------------------------------------
-// Key Down 
+// On Key Down 
 //---------------------------------------------
 procedure TFrmSHPImage.FormKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
@@ -1829,7 +1943,7 @@ begin
             ApplySelection;
 
          ResetSelection;
-         RefreshImage1;
+         RefreshImage;
       end;
    end
    // DELETE
@@ -1840,16 +1954,37 @@ begin
             CutSelection;
 
          ResetSelection;
-         RefreshImage1;
+         RefreshImage;
       end; 
    end
-   // LEFT ARROW KEY
+   // LEFT ARROW
    else if Key = VK_LEFT then begin
       SelectPrecedingFrame;
    end
+   // RIGHT ARROW
    else if Key = VK_RIGHT then begin
       SelectNextFrame;
+   end
+   // SPACE BAR
+   else if Key = VK_SPACE then begin 
+      IsSpacePressed := true; 
+   end
+   // SHIFT
+   else if Key = VK_SHIFT then begin
+      // ...
    end;
+end;
+
+
+//---------------------------------------------
+// On Key Up
+//---------------------------------------------
+procedure TFrmSHPImage.FormKeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+   // SPACE BAR
+   if Key = VK_SPACE then
+      IsSpacePressed := false;
 end;
 
 

@@ -2,7 +2,7 @@ object SHPBuilderFrmMain: TSHPBuilderFrmMain
   Left = 293
   Top = 34
   Caption = ' '
-  ClientHeight = 824
+  ClientHeight = 844
   ClientWidth = 715
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -20,7 +20,7 @@ object SHPBuilderFrmMain: TSHPBuilderFrmMain
   TextHeight = 13
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 805
+    Top = 825
     Width = 715
     Height = 19
     Panels = <
@@ -39,15 +39,17 @@ object SHPBuilderFrmMain: TSHPBuilderFrmMain
       item
         Width = 50
       end>
+    ExplicitTop = 805
   end
   object LeftPanel: TPanel
     Left = 0
     Top = 27
     Width = 160
-    Height = 778
+    Height = 798
     Align = alLeft
     BevelOuter = bvNone
     TabOrder = 1
+    ExplicitHeight = 778
     object lblPalette: TLabel
       AlignWithMargins = True
       Left = 3
@@ -2603,8 +2605,12 @@ object SHPBuilderFrmMain: TSHPBuilderFrmMain
         Caption = '-'
       end
       object UpdateOSSHPBuilder1: TMenuItem
-        Caption = 'Update OS SHP Builder...'
+        Caption = 'Update to Official Version'
         OnClick = UpdateOSSHPBuilder1Click
+      end
+      object menuItemUninstall: TMenuItem
+        Caption = 'Uninstall'
+        OnClick = menuItemUninstallClick
       end
       object N21: TMenuItem
         Caption = '-'

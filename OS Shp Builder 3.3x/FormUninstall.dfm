@@ -292,27 +292,31 @@ object FrmUninstall: TFrmUninstall
       C4BA319428BA97A509BE69C6938A74E337D64A16527D5A7AB3E9F06A6B0D4554
       7175142D51C748B9DDF338DD27CAE576B45A7447FFD9}
     OnClick = ImgDonateClick
+    OnMouseEnter = ImgDonateMouseEnter
+    OnMouseLeave = ImgDonateMouseLeave
   end
   object LbDonate: TLabel
     Left = 131
     Top = 367
-    Width = 236
-    Height = 39
+    Width = 274
+    Height = 26
     Caption = 
       'Do you like OS SHP Builder? If the answer is yes, please, contri' +
       'bute with the development of this program.'
     WordWrap = True
     OnClick = ImgDonateClick
+    OnMouseEnter = ImgDonateMouseEnter
+    OnMouseLeave = ImgDonateMouseLeave
   end
-  object PageControl1: TPageControl
+  object PageControl: TPageControl
     Left = 8
     Top = 39
     Width = 553
     Height = 309
-    ActivePage = TabSheet2
+    ActivePage = TabOptions
     MultiLine = True
     TabOrder = 0
-    object TabSheet1: TTabSheet
+    object TabOptions: TTabSheet
       Caption = 'Options'
       DesignSize = (
         545
@@ -340,64 +344,66 @@ object FrmUninstall: TFrmUninstall
         Caption = 'Uninstallation Options'
         TabOrder = 0
       end
-      object RbgDeleteOptions: TRadioGroup
+      object GbxDeleteOptions: TGroupBox
         Left = 56
         Top = 104
         Width = 417
         Height = 74
         Caption = 'File Deletion Options'
         TabOrder = 1
+        object RbDeleteAllFiles: TRadioButton
+          Left = 16
+          Top = 23
+          Width = 385
+          Height = 17
+          Caption = 'Delete all files in the program directory.'
+          Checked = True
+          TabOrder = 0
+          TabStop = True
+          OnClick = RbDeleteAllFilesClick
+        end
+        object RbDeleteInstalledFiles: TRadioButton
+          Left = 16
+          Top = 46
+          Width = 385
+          Height = 17
+          Caption = 
+            'Only delete the files installed by OS SHP Builder (it may keep t' +
+            'he directory).'
+          TabOrder = 1
+          OnClick = RbDeleteAllFilesClick
+        end
       end
-      object RbgOtherOptions: TRadioGroup
+      object GbxOtherOptions: TGroupBox
         Left = 56
         Top = 184
         Width = 417
         Height = 81
         Caption = 'Other Options'
         TabOrder = 2
-      end
-      object CbDesktop: TCheckBox
-        Left = 72
-        Top = 207
-        Width = 313
-        Height = 17
-        Caption = 'Remove registry entries and file association.'
-        Checked = True
-        State = cbChecked
-        TabOrder = 3
-      end
-      object RbDeleteAllFiles: TRadioButton
-        Left = 72
-        Top = 128
-        Width = 385
-        Height = 17
-        Caption = 'Delete all files in the program directory.'
-        Checked = True
-        TabOrder = 4
-        TabStop = True
-      end
-      object RbDeleteInstalledFiles: TRadioButton
-        Left = 72
-        Top = 151
-        Width = 385
-        Height = 17
-        Caption = 
-          'Only delete the files installed by OS SHP Builder (it may keep t' +
-          'he directory).'
-        TabOrder = 5
-      end
-      object CbDeleteIcons: TCheckBox
-        Left = 72
-        Top = 230
-        Width = 353
-        Height = 17
-        Caption = 'Delete Desktop and Start Menu Shortcuts.'
-        Checked = True
-        State = cbChecked
-        TabOrder = 6
+        object CbRegistry: TCheckBox
+          Left = 16
+          Top = 23
+          Width = 313
+          Height = 17
+          Caption = 'Remove registry entries and file association.'
+          Checked = True
+          State = cbChecked
+          TabOrder = 0
+        end
+        object CbDeleteIcons: TCheckBox
+          Left = 16
+          Top = 46
+          Width = 353
+          Height = 17
+          Caption = 'Delete Desktop and Start Menu Shortcuts.'
+          Checked = True
+          State = cbChecked
+          TabOrder = 1
+        end
       end
     end
-    object TabSheet2: TTabSheet
+    object TabProgress: TTabSheet
       Caption = 'Progress'
       Enabled = False
       ImageIndex = 1
@@ -455,11 +461,11 @@ object FrmUninstall: TFrmUninstall
     Enabled = False
     Interval = 200
     OnTimer = TimerTimer
-    Left = 504
-    Top = 136
+    Left = 448
+    Top = 112
   end
   object XPManifest: TXPManifest
-    Left = 472
-    Top = 136
+    Left = 416
+    Top = 112
   end
 end

@@ -1169,7 +1169,7 @@ begin
    TopLabel.Caption := 'Select a colour form the left for the replace colour and then the replace with colour';
    Button1.Enabled := IsAnyOptionChecked;
    RRselectedonly.Enabled := FrmMain.ActiveForm^.Selection.Width > 0;
-   FrmMain.ActiveForm^.RefreshImage1;
+   FrmMain.ActiveForm^.RefreshImage;
 end;
 
 procedure TfrmReplaceColour.rop24BCEClick(Sender: TObject);
@@ -1182,7 +1182,7 @@ begin
    if AutoProof.Checked then
       Proof
    else
-      FrmMain.ActiveForm^.RefreshImage1;
+      FrmMain.ActiveForm^.RefreshImage;
    // 3.31: Paint Preview image
    cnvPreview24BPaint(nil);
 end;
@@ -1196,7 +1196,7 @@ begin
    else
       Button1.Enabled := false;
    RRselectedonly.Enabled := FrmMain.ActiveForm^.Selection.Width > 0;
-   FrmMain.ActiveForm^.RefreshImage1;
+   FrmMain.ActiveForm^.RefreshImage;
 end;
 
 

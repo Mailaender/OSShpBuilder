@@ -45,6 +45,7 @@ object FrmSHPImage: TFrmSHPImage
   OnClose = FormClose
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
+  OnKeyUp = FormKeyUp
   OnResize = FormResize
   OnShow = FormShow
   PixelsPerInch = 96
@@ -61,15 +62,24 @@ object FrmSHPImage: TFrmSHPImage
     object PaintAreaPanel: TPanel
       Left = 0
       Top = 0
-      Width = 21
-      Height = 21
+      Width = 65
+      Height = 41
       BevelOuter = bvNone
+      Color = clMedGray
+      ParentBackground = False
       TabOrder = 0
+      object imgBackground: TImage
+        Left = 0
+        Top = 0
+        Width = 0
+        Height = 0
+      end
       object Image1: TImage
         Left = 0
         Top = 0
         Width = 321
         Height = 265
+        Transparent = True
         OnDblClick = Image1DblClick
         OnMouseDown = Image1MouseDown
         OnMouseMove = Image1MouseMove

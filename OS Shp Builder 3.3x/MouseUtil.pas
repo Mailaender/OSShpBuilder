@@ -1,7 +1,7 @@
  // MOUSE.PAS
  // By Banshee & Stucuk
 
-unit Mouse;
+unit MouseUtil;
 
 interface
 

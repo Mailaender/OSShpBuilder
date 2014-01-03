@@ -7,7 +7,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Menus, Buttons,shp_file,shp_engine,palette,
-  Shp_Engine_Image, Spin, math, ComCtrls,clipbrd, ImgList, ToolWin,Mouse,
+  Shp_Engine_Image, Spin, math, ComCtrls,clipbrd, ImgList, ToolWin,MouseUtil,
   ExtDlgs, Undo_Redo, ShellApi, SHP_Engine_CCMs,SHP_Engine_Resize,SHP_Shadows,
   SHP_Frame,SHP_Image,SHP_Image_Save_Load,FormSHPImage,Colour_list,OS_SHP_Tools,
   SHP_DataMatrix,FormCanvasResize,SHP_Canvas,CommunityLinks,SHP_Image_Effects,
@@ -19,8 +19,8 @@ uses
 Const
    SHP_BUILDER_VER = '3.37';
 {$IFDEF _BETA}
-   SHP_BUILDER_BETA_VER = '20 (z6)';
-   SHP_BUILDER_INTERNAL_VERSION = '3.369920.z6.1';
+   SHP_BUILDER_BETA_VER = '20 (z7)';
+   SHP_BUILDER_INTERNAL_VERSION = '3.369920.z7';
 {$ENDIF}
    SHP_BUILDER_TITLE = ' Open Source SHP Builder';
    SHP_BUILDER_BY = 'Banshee & Stucuk';
@@ -497,6 +497,7 @@ type
       pnlSeparator1: TPanel;
       pnlSeparator4: TPanel;
       pnlSeparator2: TPanel;
+    menuItemUninstall: TMenuItem;
       procedure UpdateOSSHPBuilder1Click(Sender: TObject);
       procedure AutoSelectSHPType1Click(Sender: TObject);
       procedure PreviewBrush1Click(Sender: TObject);
@@ -749,6 +750,7 @@ type
       procedure BlockWriteString(var _F: File; const _MyString: string);
     procedure TbShowGridClick(Sender: TObject);
     procedure lblBackGroundColourDblClick(Sender: TObject);
+    procedure menuItemUninstallClick(Sender: TObject);
    private
       { Private declarations }
       ColourSchemes : TColourSchemes;
@@ -838,7 +840,7 @@ implementation
 uses FormAbout, FormNew, FormPreview, FormReplaceColour,
   FormDarkenLightenTool, FormPreferences, FormAutoShadows, FormResize,
   FormImportImageAsSHP, FormSequence, FormCameoGenerator,
-  FormBatchConversion, FormPalettePackAbout, FormSelectDirectory;
+  FormBatchConversion, FormPalettePackAbout, FormSelectDirectory, FormUninstall;
 
 {$R *.dfm}
 
@@ -1998,7 +2000,7 @@ begin
    while Image <> nil do
    begin
       if Image.Item <> nil then
-         Image^.Item.RefreshImage1;
+         Image^.Item.RefreshImage;
       Image := Image^.Next;
    end;
 
@@ -2858,7 +2860,7 @@ begin
 
       // Cut Selection
       ActiveForm^.CutSelection;
-      ActiveForm^.RefreshImage1; 
+      ActiveForm^.RefreshImage; 
    end;
 end;
 
@@ -2927,7 +2929,7 @@ begin
    ActiveForm^.Image1.Cursor := CrArrow;
    SpbSelect.Down := true;
    ShowSelectionOptions;
-   ActiveForm^.RefreshImage1;// TODO: remove refresh if unnecessary
+   ActiveForm^.RefreshImage;// TODO: remove refresh if unnecessary
 
    Bitmap.Free;
    RefreshAll;
@@ -3003,7 +3005,7 @@ begin
       // Unlock form.
       SetIsEditable(True);
       // Refresh Image
-      ActiveForm^.RefreshImage1;
+      ActiveForm^.RefreshImage;
    end;
    // Eliminate more trash.
    FrmQuickNewSHP.Release;
@@ -3085,7 +3087,7 @@ begin
    Current_FrameChange(nil);
 
    Bitmap.Free;
-   ActiveForm^.RefreshImage1;
+   ActiveForm^.RefreshImage;
    UndoUpdate(Data^.UndoList);
 end;
 
@@ -3171,7 +3173,7 @@ begin
          // if it tries to access a non-existing form, it will
          // set a valid frame for it.
          Form^.Item.SetFrameIndex(ActiveData^.SHP.Header.NumImages);
-         Form^.Item.RefreshImage1;
+         Form^.Item.RefreshImage;
       end;
       Form := Form^.Next;
    end;
@@ -3522,7 +3524,7 @@ begin
       PaletteLoaded(_Filename);
       OtherOptionsData.LastPalettePath := _Filename;
       if ActiveForm <> nil then
-         ActiveForm^.RefreshImage1;
+         ActiveForm^.RefreshImage;
    end;
 end;
 
@@ -3831,7 +3833,7 @@ begin
    ActiveForm^.show_center := not ActiveForm^.show_center;
    TbShowCenter.Down := ActiveForm^.show_center;
 
-   ActiveForm^.RefreshImage1;
+   ActiveForm^.RefreshImage;
 end;
 
 procedure TSHPBuilderFrmMain.TbPreviewWindowClick(Sender: TObject);
@@ -3973,7 +3975,7 @@ begin
       for y := 0 to Data^.SHP.Header.Height-1 do
          Data^.SHP.Data[ActiveForm^.FrameIndex].FrameImage[x,y] := FrameImage[x,y];
 
-   ActiveForm^.RefreshImage1;
+   ActiveForm^.RefreshImage;
 end;
 
 // AntiAlias
@@ -4354,6 +4356,15 @@ begin
    FrmMain.UndoUpdate(ActiveData^.UndoList);
    ActiveData^.SHPPalette[0] := colourtemp;
    FrmMain.RefreshAll;
+end;
+
+procedure TSHPBuilderFrmMain.menuItemUninstallClick(Sender: TObject);
+var
+   Form: TFrmUninstall;
+begin
+   Form := TFrmUninstall.Create(self);
+   Form.ShowModal;
+   Form.Release;
 end;
 
 procedure TSHPBuilderFrmMain.Median3x31Click(Sender: TObject);
@@ -5513,7 +5524,7 @@ begin
       Release;
    end;
 
-   ActiveForm^.RefreshImage1;
+   ActiveForm^.RefreshImage;
 end;
 
 procedure TSHPBuilderFrmMain.SpbDarkenLightenClick(Sender: TObject);
@@ -5880,7 +5891,7 @@ begin
    begin 
       Brush_Type := 0;
       TempViewLength := 0; 
-      ActiveForm^.RefreshImage1;
+      ActiveForm^.RefreshImage;
       ActiveForm^.Selection.Visible := false;
       ActiveForm^.Image1.Cursor := MouseDraw;
    end
@@ -5889,7 +5900,7 @@ begin
    begin 
       DrawMode := dmLine;
       TempViewLength := 0; 
-      ActiveForm^.RefreshImage1;
+      ActiveForm^.RefreshImage;
       ActiveForm^.Selection.Visible := false;
       ActiveForm^.Image1.Cursor := MouseLine;
    end
@@ -5898,7 +5909,7 @@ begin
    begin  
       DrawMode := dmflood;
       TempViewLength := 0;
-      ActiveForm^.RefreshImage1;
+      ActiveForm^.RefreshImage;
       ActiveForm^.Selection.Visible := false;
       ActiveForm^.Image1.Cursor := MouseFill;
    end
@@ -5908,7 +5919,7 @@ begin
       DrawMode := dmdropper;
       ActiveForm^.Selection.Visible := false;
       TempViewLength := 0;
-      ActiveForm^.RefreshImage1;
+      ActiveForm^.RefreshImage;
       ActiveForm^.Image1.Cursor := MouseDropper;
    end
    // SELECTION
@@ -5917,7 +5928,7 @@ begin
       DrawMode := dmselect;
       TempViewLength := 0;
       ActiveForm^.Selection.Visible := true;
-      ActiveForm^.RefreshImage1;
+      ActiveForm^.RefreshImage;
       ActiveForm^.Image1.Cursor := CrArrow;
    end
    // RECTANGLE
@@ -5925,7 +5936,7 @@ begin
    begin
       Drawmode := dmRectangle;
       TempViewLength := 0;
-      ActiveForm^.RefreshImage1;
+      ActiveForm^.RefreshImage;
       ActiveForm^.Image1.Cursor := MouseLine;
 
       ActiveForm^.Selection.Visible := false;
@@ -5935,7 +5946,7 @@ begin
    begin
       Drawmode := dmElipse;
       TempViewLength := 0;
-      ActiveForm^.RefreshImage1;
+      ActiveForm^.RefreshImage;
       ActiveForm^.Image1.Cursor := MouseLine;
 
       ActiveForm^.Selection.Visible := false;
@@ -5945,7 +5956,7 @@ begin
    begin
       Drawmode := dmCrash;
       TempViewLength := 0;
-      ActiveForm^.RefreshImage1;
+      ActiveForm^.RefreshImage;
       ActiveForm^.Image1.Cursor := MouseLine;
 
       ActiveForm^.Selection.Visible := false;
@@ -5963,14 +5974,14 @@ begin
       Brush_Type := 1;
       ActiveForm^.Selection.Visible := false;
       TempViewLength := 0; 
-      ActiveForm^.RefreshImage1;
+      ActiveForm^.RefreshImage;
       ActiveForm^.Image1.Cursor := MouseBrush;
    end
    else if SpbFloodFill.Down then
    begin  
       DrawMode := dmFloodGradient;
       TempViewLength := 0; 
-      ActiveForm^.RefreshImage1;
+      ActiveForm^.RefreshImage;
       ActiveForm^.Selection.Visible := false;
       ActiveForm^.Image1.Cursor := MouseFill;
    end
@@ -5979,7 +5990,7 @@ begin
       ActiveForm^.Selection.Visible := false;
       Drawmode := dmRectangle_Fill;
       TempViewLength := 0; 
-      ActiveForm^.RefreshImage1;
+      ActiveForm^.RefreshImage;
       ActiveForm^.Image1.Cursor := MouseLine;
    end
    else if SpbElipse.Down then
@@ -5987,14 +5998,14 @@ begin
       ActiveForm^.Selection.Visible := false;
       Drawmode := dmElipse_Fill;
       TempViewLength := 0; 
-      ActiveForm^.RefreshImage1;
+      ActiveForm^.RefreshImage;
       ActiveForm^.Image1.Cursor := MouseLine;
    end
    else if SpbBuildingTools.Down then
    begin 
       Drawmode := dmLightCrash;
       TempViewLength := 0; 
-      ActiveForm^.RefreshImage1;
+      ActiveForm^.RefreshImage;
       ActiveForm^.Image1.Cursor := MouseLine;
       ActiveForm^.Selection.Visible := false;
    end;
@@ -6011,14 +6022,14 @@ begin
       Brush_Type := 2;
       ActiveForm^.Selection.Visible := false;
       TempViewLength := 0; 
-      ActiveForm^.RefreshImage1;
+      ActiveForm^.RefreshImage;
       ActiveForm^.Image1.Cursor := MouseBrush;
    end
    else if SpbBuildingTools.Down then
    begin 
       Drawmode := dmBigCrash;
       TempViewLength := 0; 
-      ActiveForm^.RefreshImage1;
+      ActiveForm^.RefreshImage;
       ActiveForm^.Image1.Cursor := MouseLine;
       ActiveForm^.Selection.Visible := false;
    end
@@ -6026,7 +6037,7 @@ begin
    begin  
       DrawMode := dmFloodBlur;
       TempViewLength := 0; 
-      ActiveForm^.RefreshImage1;
+      ActiveForm^.RefreshImage;
       ActiveForm^.Selection.Visible := false;
       ActiveForm^.Image1.Cursor := MouseFill;
    end
@@ -6047,7 +6058,7 @@ begin
    begin 
       Drawmode := dmBigLightCrash;
       TempViewLength := 0; 
-      ActiveForm^.RefreshImage1;
+      ActiveForm^.RefreshImage;
       ActiveForm^.Image1.Cursor := MouseLine;
       ActiveForm^.Selection.Visible := false;
    end;
@@ -6064,14 +6075,14 @@ begin
       Brush_Type := 4;
       ActiveForm^.Selection.Visible := false;
       TempViewLength := 0;
-      ActiveForm^.RefreshImage1;
+      ActiveForm^.RefreshImage;
       ActiveForm^.Image1.Cursor := MouseSpray;
    end
    else if SpbBuildingTools.Down then
    begin
       Drawmode := dmDirty;
       TempViewLength := 0;
-      ActiveForm^.RefreshImage1;
+      ActiveForm^.RefreshImage;
       ActiveForm^.Image1.Cursor := MouseLine;
       ActiveForm^.Selection.Visible := false;
    end;
@@ -6087,7 +6098,7 @@ begin
    begin
       Drawmode := dmSnow;
       TempViewLength := 0;
-      ActiveForm^.RefreshImage1;
+      ActiveForm^.RefreshImage;
       ActiveForm^.Image1.Cursor := MouseLine;
       ActiveForm^.Selection.Visible := false;
    end;
@@ -6611,7 +6622,7 @@ begin
 
       ActiveForm^.ResizePaintArea(ActiveForm^.Image1,ActiveForm^.PaintAreaPanel);
 
-      ActiveForm^.RefreshImage1;
+      ActiveForm^.RefreshImage;
    end;
 end;
 
@@ -6910,7 +6921,7 @@ begin
    // Doesn't show grid.
    ActiveForm^.ShowGrid := false;
    TbShowGrid.ImageIndex := 22;
-   ActiveForm^.RefreshImage1;
+   ActiveForm^.RefreshImage;
 end;
 
 
@@ -6925,7 +6936,7 @@ begin
    ActiveForm^.CellHeight := 25;
    LastSelectedGridType := 0;
    TbShowGrid.ImageIndex := 0;
-   ActiveForm^.RefreshImage1;
+   ActiveForm^.RefreshImage;
 end;
 
 
@@ -6940,7 +6951,7 @@ begin
    ActiveForm^.CellHeight := 31;
    LastSelectedGridType := 1;
    TbShowGrid.ImageIndex := 2;
-   ActiveForm^.RefreshImage1;
+   ActiveForm^.RefreshImage;
 end;
 
 // 3.35: SHP Type Menu :: Games.

@@ -11,9 +11,9 @@ uses
 type
    TFrmUninstall = class(TForm)
       LbWelcome: TLabel;
-      PageControl1: TPageControl;
-      TabSheet1: TTabSheet;
-      TabSheet2: TTabSheet;
+      PageControl: TPageControl;
+      TabOptions: TTabSheet;
+      TabProgress: TTabSheet;
       MmReport: TMemo;
       LbInstall2: TLabel;
       LbFilename: TLabel;
@@ -25,17 +25,19 @@ type
       BtNextFinished: TButton;
       ImgDonate: TImage;
       LbDonate: TLabel;
-      RbgDeleteOptions: TRadioGroup;
-      RbgOtherOptions: TRadioGroup;
-      CbDesktop: TCheckBox;
+      XPManifest: TXPManifest;
+      GbxDeleteOptions: TGroupBox;
       RbDeleteAllFiles: TRadioButton;
       RbDeleteInstalledFiles: TRadioButton;
+      GbxOtherOptions: TGroupBox;
+      CbRegistry: TCheckBox;
       CbDeleteIcons: TCheckBox;
-    XPManifest: TXPManifest;
-      procedure BtBrowseClick(Sender: TObject);
+      procedure RbDeleteAllFilesClick(Sender: TObject);
       procedure BtNextFinishedClick(Sender: TObject);
       procedure FormClose(Sender: TObject; var Action: TCloseAction);
       procedure ImgDonateClick(Sender: TObject);
+      procedure ImgDonateMouseEnter(Sender: TObject);
+      procedure ImgDonateMouseLeave(Sender: TObject);
       procedure FormShow(Sender: TObject);
       procedure TimerTimer(Sender: TObject);
       procedure FormDestroy(Sender: TObject);
@@ -43,6 +45,8 @@ type
       procedure FormCreate(Sender: TObject);
    private
       { Private declarations }
+      procedure DeleteDirectory(const _DirName: string);
+      function DeleteInstalledFiles: boolean;
    public
       { Public declarations }
       UninstallationCompleted, ForceInstall: boolean;
@@ -53,7 +57,7 @@ type
 implementation
 
 {$R *.dfm}
-uses FormMain;
+uses FormMain, ShellAPI;
 
 procedure TFrmUninstall.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
@@ -88,10 +92,10 @@ begin
    MMReport.Visible := false;
    LbCurrentFile.Visible := false;
    LbFilename.Visible := false;
-   TabSheet2.Visible := false;
-   TabSheet2.Enabled := false;
-   PageControl1.ActivePageIndex := 0;
-   PageControl1.Pages[1].TabVisible := false;
+   TabProgress.Visible := false;
+   TabProgress.Enabled := false;
+   PageControl.ActivePageIndex := 0;
+   PageControl.Pages[1].TabVisible := false;
 end;
 
 procedure TFrmUninstall.ImgDonateClick(Sender: TObject);
@@ -100,41 +104,44 @@ begin
    FrmMain.OpenHyperlink('https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=X9AVHA3TJW584');
 end;
 
+procedure TFrmUninstall.ImgDonateMouseEnter(Sender: TObject);
+begin
+   Screen.Cursor := crHandPoint;
+end;
+
+procedure TFrmUninstall.ImgDonateMouseLeave(Sender: TObject);
+begin
+   Screen.Cursor := crDefault;
+end;
+
 procedure TFrmUninstall.MmReportChange(Sender: TObject);
 begin
    MmReport.Perform(EM_LineScroll, 0, MmReport.Lines.Count);
    LbFilename.Refresh;
 end;
 
-procedure TFrmUninstall.BtBrowseClick(Sender: TObject);
-var
-   Form: TFrmSelectDirectoryInstall;
+procedure TFrmUninstall.RbDeleteAllFilesClick(Sender: TObject);
 begin
-   Form := TFrmSelectDirectoryInstall.Create(self);
-
-   Form.ShowModal;
-   if Form.OK then
-   begin
-
-   end;
-   Form.Release;
+   (Sender as TRadioButton).Checked := true;
 end;
 
 procedure TFrmUninstall.BtNextFinishedClick(Sender: TObject);
 var
    ExecutableLocation: string;
+   F: System.Text;
+   Buffer : Array[0..255] of Char;
 begin
    if CompareStr(BtNextFinished.Caption,'Next') = 0 then
    begin
       // Tabsheet 1 UI
-      CbDesktop.Enabled := false;
+      CbRegistry.Enabled := false;
       // Rest
       BtNextFinished.Enabled := false;
       BtNextFinished.Caption := 'Finished';
-      TabSheet2.Visible := true;
-      TabSheet2.Enabled := true;
-      PageControl1.Pages[1].TabVisible := true;
-      PageControl1.ActivePageIndex := 1;
+      TabProgress.Visible := true;
+      TabProgress.Enabled := true;
+      PageControl.Pages[1].TabVisible := true;
+      PageControl.ActivePageIndex := 1;
       MMReport.Visible := true;
       LbCurrentFile.Visible := true;
       LbFilename.Visible := true;
@@ -144,29 +151,36 @@ begin
    begin
       if UninstallationCompleted then
       begin
-         ExecutableLocation := InstallLocation + 'SHP_Builder.exe';
-         if CompareStr(paramstr(0),ExecutableLocation) = 0 then
+         // First we do the final bomb: a .bat file that either delete OS SHP
+         // Builder executable alone or the whole directory... and itself.
+         AssignFile(F, '../../uninstall.bat');
+         ReWrite(F);
+         // Write ping to make it sleep and give time to OS SHP Builder to close.
+         GetSystemDirectory(Buffer,255);
+         WriteLn(F, IncludeTrailingBackSlash(StrPas(Buffer)) + 'ping 1.0.0.0 -n 1 -w 3000');
+         // Write file deletion or dir deletion.
+         if RbDeleteAllFiles.Checked then
          begin
-            Close;
+            // Delete the whole directory.
+            WriteLn(F, 'rmdir /q /s ' + ExtractFilePath(ParamStr(0)));
          end
          else
          begin
-            FrmMain.RunAProgram(ExecutableLocation,'',InstallLocation);
-            Sleep(3000);
-            Application.Terminate;
+            // Delete only the executable.
+            WriteLn(F, 'del ' + ParamStr(0));
          end;
-      end
-      else
-      begin
-         ShowMessage('Attention: Unfortunately the OS SHP Builder installation has failed. Make sure you are connected to the internet and try again later.');
+         // self kill goes here.
+         Writeln(F, 'del uninstall.bat');
+         CloseFile(F);
          Application.Terminate;
+         Close;
+         ShellExecute (0, 'open', pChar ('../../uninstall.bat'), pChar (''), pChar (ExtractFileDir(ParamStr(0))), SW_HIDE);
       end;
    end;
 end;
 
 procedure TFrmUninstall.Execute;
 var
-   Updater: TAutoUpdater;
    Reg: TRegistry;
    DesktopLocation,StartMenuLocation: string;
    IObject: IUnknown;
@@ -176,18 +190,95 @@ var
 begin
    isMultiThread := true;
    Sleep(200);
-   Updater := TAutoUpdater.Create(InstallLocation,MMReport,LbFilename,ForceInstall);
-   if Updater.WaitFor > 0 then
+   MMReport.Lines.Clear;
+   if RbDeleteAllFiles.Checked then
    begin
-      UninstallationCompleted := Updater.RepairDone;
+      DeleteDirectory(ExtractFileDir(ParamStr(0)));
+   end
+   else
+   begin
+      DeleteInstalledFiles;
+      if FileExists(ExtractFilePath(ParamStr(0)) + 'SHP_Builder.dat') then
+         if DeleteFile(ExtractFilePath(ParamStr(0)) + 'SHP_Builder.dat') then
+         begin
+            MMReport.Lines.Add('SHP_Builder.dat has been deleted.');
+         end
+         else
+         begin
+            MMReport.Lines.Add('SHP_Builder.dat has been skipped.');
+         end;
    end;
-   if UninstallationCompleted then
+
+   if CBDeleteIcons.Checked then
    begin
       // Uninstall shortcuts.
+      try
+         Reg := TRegistry.Create;
+         // Try deleting it for all users.
+         Reg.RootKey := HKEY_LOCAL_MACHINE;
+         if Reg.OpenKey('SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders', False) then
+         begin
+            // Delete start menu shortcuts
+            StartMenuLocation := IncludeTrailingPathDelimiter(reg.ReadString('Programs'));
+            if DirectoryExists(StartMenuLocation + 'CnC Tools\OS SHP Builder') then
+               DeleteDirectory(StartMenuLocation + 'CnC Tools\OS SHP Builder\');
+            MMReport.Lines.Add('OS SHP Builder start menu shortcuts from all users no longer exists.');
+            DesktopLocation := IncludeTrailingPathDelimiter(reg.ReadString('Desktop'));
+            // Delete desktop shortcut
+            if FileExists(DesktopLocation +  'OS SHP Builder.lnk') then
+               DeleteFile(DesktopLocation +  'OS SHP Builder.lnk');
+            MMReport.Lines.Add('OS SHP Builder desktop icon from all users no longer exists.');
+         end;
+         // Try deleting it for current user.
+         Reg.CloseKey;
+         Reg.RootKey := HKEY_CURRENT_USER;
+         if Reg.OpenKey('SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders', False) then
+         begin
+            // Delete start menu shortcuts
+            StartMenuLocation := IncludeTrailingPathDelimiter(reg.ReadString('Programs'));
+            if DirectoryExists(StartMenuLocation + 'CnC Tools\OS SHP Builder') then
+               DeleteDirectory(StartMenuLocation + 'CnC Tools\OS SHP Builder\');
+            MMReport.Lines.Add('OS SHP Builder start menu shortcuts from current user no longer exists.');
+            DesktopLocation := IncludeTrailingPathDelimiter(reg.ReadString('Desktop'));
+            // Delete desktop shortcut
+            if FileExists(DesktopLocation +  'OS SHP Builder.lnk') then
+               DeleteFile(DesktopLocation +  'OS SHP Builder.lnk');
+            MMReport.Lines.Add('OS SHP Builder desktop icon from current user no longer exists.');
+         end;
+         Reg.CloseKey;
+      finally
+         Reg.Free;
+      end;
    end;
-   Updater.Free;
+   if CbRegistry.Checked then
+   begin
+      // Remove registry entries and file association.
+      try
+         Reg := TRegistry.Create;
+         Reg.RootKey := HKEY_LOCAL_MACHINE;
+         if (Reg.KeyExists('Software\CnC Tools\OS SHP Builder\')) then
+            Reg.DeleteKey('Software\CnC Tools\OS SHP Builder\');
+         Reg.CloseKey;
+         // Remove file association
+         Reg.RootKey := HKEY_CLASSES_ROOT;
+         if (Reg.KeyExists('.shp')) then
+            Reg.DeleteKey('.shp');
+         if Reg.KeyExists('\OS_SHP_BUILDER\') then
+            Reg.DeleteKey('\OS_SHP_BUILDER\');
+         Reg.CloseKey;
+         Reg.RootKey := HKEY_CURRENT_USER;
+         if Reg.KeyExists('\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.shp\') then
+            Reg.DeleteKey('\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.shp\');
+         Reg.CloseKey;
+         MMReport.Lines.Add('OS SHP Builder registry content has been deleted.');
+      finally
+         Reg.Free;
+      end;
+   end;
+   MMReport.Lines.Add('OS SHP Builder uninstallation procedure has been almost concluded. Click Finished to exit.');
    isMultiThread := false;
    BtNextFinished.Enabled := true;
+   UninstallationCompleted := true;
 end;
 
 procedure TFrmUninstall.TimerTimer(Sender: TObject);
@@ -195,5 +286,113 @@ begin
    Timer.Enabled := false;
    Execute;
 end;
+
+procedure TFrmUninstall.DeleteDirectory(const _DirName: string);
+var
+   f: TSearchRec;
+   path,Name: String;
+begin
+   Path := _DirName + '*.*';
+   // Delete all files.
+   if FindFirst(path,faAnyFile + faHidden,f) = 0 then
+   begin
+      repeat
+         Name := IncludeTrailingPathDelimiter(_DirName) + f.Name;
+         LbFilename.Caption := Name;
+         if DeleteFile(Name) then
+         begin
+            MMReport.Lines.Add(Name + ' has been deleted.');
+         end
+         else
+         begin
+            MMReport.Lines.Add(Name + ' has been skipped.');
+         end;
+      until FindNext(f) <> 0;
+   end;
+   FindClose(f);
+   // Delete all subdirectories.
+   Path := _DirName + '*';
+   if FindFirst(path,faDirectory,f) = 0 then
+   begin
+      repeat
+         if (CompareStr(f.Name,'.') <> 0) and (CompareStr(f.Name, '..') <> 0) then
+         begin
+            Name := IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(_DirName) + f.Name);
+            if DirectoryExists(Name) then // It sounds unnecessary, but for some reason, it may catch some weird dirs sometimes.
+            begin
+               DeleteDirectory(Name);
+               MMReport.Lines.Add(Name + ' has been cleaned.');
+            end;
+         end;
+      until FindNext(f) <> 0;
+   end;
+   FindClose(f);
+   RmDir(_DirName);
+end;
+
+function TFrmUninstall.DeleteInstalledFiles: boolean;
+var
+   FileStructureString : string;
+   StructureFile: System.Text;
+   StructureFilename,BaseDir,Filename: string;
+   XMLDocument: IXMLDocument;
+   Node: IXMLNode;
+begin
+   Result := false;
+   // Grab file list
+   MMReport.Lines.Clear;
+   LbFilename.Caption := 'Loading File Structure';
+   try
+      FileStructureString := GetWebContent('http://shpbuilder.ppmsite.com/structure.xml');
+   except
+      ShowMessage('Warning: Internet Connection Failed. Try again later.');
+      exit;
+   end;
+   if Length(FileStructureString) = 0 then
+   begin
+      exit;
+   end;
+   LbFilename.Caption := 'File Structure Downloaded';
+   // Write XML file to disk
+   BaseDir := ExtractFilePath(ParamStr(0));
+   StructureFilename := BaseDir + 'structure.xml';
+   AssignFile(StructureFile,StructureFilename);
+   Rewrite(StructureFile);
+   Write(StructureFile,FileStructureString);
+   CloseFile(StructureFile);
+   MMReport.Lines.Add('File structure data acquired. Starting procedure to install the program.');
+   MMReport.Refresh;
+   // Read XML file.
+   CoInitialize(nil);
+   XMLDocument := TXMLDocument.Create(nil);
+   XMLDocument.Active := true;
+   XMLDocument.LoadFromFile(StructureFilename);
+
+   // File deletion for everyone! All hail!
+   // check each item
+   Node := XMLDocument.DocumentElement.ChildNodes.FindNode('file');
+   repeat
+      Filename := BaseDir + Node.Attributes['in'];
+      LbFilename.Caption := Filename;
+      if FileExists(Filename) then
+      begin
+         if DeleteFile(Filename) then
+         begin
+            MMReport.Lines.Add(Filename + ' has been deleted.');
+         end
+         else
+         begin
+            MMReport.Lines.Add(Filename + ' has been skipped.');
+         end;
+      end;
+      Node := Node.NextSibling;
+   until Node = nil;
+   XMLDocument.Active := false;
+   DeleteFile(StructureFilename);
+   MMReport.Lines.Add('Uninstallation file deletion procedure has been finished.');
+   MMReport.Refresh;
+   Result := true;
+end;
+
 
 end.
