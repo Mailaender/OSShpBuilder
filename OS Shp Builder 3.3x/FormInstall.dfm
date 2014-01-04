@@ -300,8 +300,8 @@ object FrmRepairAssistant: TFrmRepairAssistant
   object LbDonate: TLabel
     Left = 131
     Top = 380
-    Width = 302
-    Height = 39
+    Width = 274
+    Height = 26
     Anchors = [akLeft, akRight, akBottom]
     Caption = 
       'Do you like OS SHP Builder? If the answer is yes, please, contri' +
@@ -321,7 +321,6 @@ object FrmRepairAssistant: TFrmRepairAssistant
     TabOrder = 0
     object TabOptions: TTabSheet
       Caption = 'Options'
-      ExplicitHeight = 281
       DesignSize = (
         545
         301)
@@ -451,6 +450,9 @@ object FrmRepairAssistant: TFrmRepairAssistant
       Caption = 'Progress'
       Enabled = False
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
       ExplicitHeight = 281
       DesignSize = (
         545

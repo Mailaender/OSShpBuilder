@@ -407,12 +407,26 @@ var
 begin
    Bitmap := GetBMPFromImageFile(Image_Location.Text);  // Load for autoselect
 
+{
+   if fileexists(FrmMain.paletteschemes[CbxPalette.ItemIndex+1].filename) then
+      GetPaletteFromFile(FrmMain.paletteschemes[CbxPalette.ItemIndex+1].filename,SHPPalette)
+   else
+   begin
+      ShowMessage('Error! Palette not found! Please, restore it or reinstall ' + SHP_BUILDER_TITLE + '. The program will use unittem.pal from TS.');
+      GetPaletteFromFile(extractfiledir(ParamStr(0))+'\Palettes\TS\unittem.pal',SHPPalette);
+   end;
+}
    // Set palette
    if not fileexists(FrmMain.paletteschemes[CbxPalette.ItemIndex+1].filename) then
    begin
       FrmInstall := TFrmRepairAssistant.Create(self);
       FrmInstall.ShowModal;
       FrmInstall.Release;
+      if not fileexists(FrmMain.paletteschemes[CbxPalette.ItemIndex+1].filename) then
+      begin
+         Application.Terminate;
+         exit;
+      end;
    end;
    GetPaletteFromFile(FrmMain.paletteschemes[CbxPalette.ItemIndex+1].filename,SHPPalette);
 
@@ -421,7 +435,18 @@ begin
    PrepareBank(Start,List,Last);
 
    // Set algorithm to be used
-   if ccmBanshee2.Checked then
+{   if ccmAutoSelect.Checked then
+   begin
+      alg := AutoSelectALG_Progress(ProgressBar,Bitmap,SHPPalette,List,Last);
+      showmessage('Selected Colour Conversion Mode: ' + inttostr(alg)); //Enable to debug auto select
+   end
+   else if ccmStu.Checked then
+      alg := 1
+   else if ccmStu2.Checked then
+      alg := 2
+   else if ccmBanshee.Checked then
+      alg := 3
+   else} if ccmBanshee2.Checked then
       alg := 4
    else if ccmBanshee3.Checked then
       alg := 5

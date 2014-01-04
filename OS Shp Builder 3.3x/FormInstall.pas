@@ -264,7 +264,7 @@ begin
          else
          begin
             ExecutableLocation := InstallLocation + 'SHP_Builder.exe';
-            if CompareStr(paramstr(0),ExecutableLocation) = 0 then
+            if (not FileExists(InstallLocation + 'SHP_BuilderUp.exe')) and (CompareStr(paramstr(0),ExecutableLocation) = 0) then
             begin
                Close;
             end

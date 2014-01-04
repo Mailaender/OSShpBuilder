@@ -53,22 +53,22 @@ uses FormMain;
 // latest Delphi versions (2006, 2007?)
 function RGB(r,g,b : integer): TColor;
 begin
-  Result := (r or (g shl 8) or (b shl 16));
+   Result := (r or (g shl 8) or (b shl 16));
 end;
 
 function GetRValue(rgb: TColor): Byte;
 begin
-  Result := Byte(rgb);
+   Result := Byte(rgb);
 end;
 
 function GetGValue(rgb: TColor): Byte;
 begin
-  Result := Byte(rgb shr 8);
+   Result := Byte(rgb shr 8);
 end;
 
 function GetBValue(rgb: TColor): Byte;
 begin
-  Result := Byte(rgb shr 16);
+   Result := Byte(rgb shr 16);
 end;
 
 
@@ -99,32 +99,31 @@ end;
 // Saves TS/RA2 Palette from the SHPPalette
 procedure SavePaletteToFile(Filename : string; var SHPPalette:TPalette);
 var
-Palette_f : array [0..255] of record
-red,green,blue:byte;
-end;
-    x: Integer;
-    F : file;
+   Palette_f : array [0..255] of record
+      red,green,blue:byte;
+   end;
+   x: Integer;
+   F : file;
 begin
+   for x := 0 to 255 do
+   begin
+      Palette_f[x].red := GetRValue(SHPPalette[x]) div 4;
+      Palette_f[x].green := GetGValue(SHPPalette[x]) div 4;
+      Palette_f[x].blue := GetBValue(SHPPalette[x]) div 4;
+   end;
 
-     for x := 0 to 255 do
-     begin
-     Palette_f[x].red := GetRValue(SHPPalette[x]) div 4;
-     Palette_f[x].green := GetGValue(SHPPalette[x]) div 4;
-     Palette_f[x].blue := GetBValue(SHPPalette[x]) div 4;
-     end;
+   AssignFile(F,Filename);
+   Rewrite(F,1);
 
-     AssignFile(F,Filename);
-     Rewrite(F,1);
-
-     BlockWrite(F,Palette_f,sizeof(Palette_f));
-     CloseFile(F);
+   BlockWrite(F,Palette_f,sizeof(Palette_f));
+   CloseFile(F);
 end;
 
 procedure GetPaletteFromFile(Filename : string; var Palette:TPalette);
 var
-Palette_f : array [0..255] of record
-red,green,blue:byte;
-end;
+   Palette_f : array [0..255] of record
+      red,green,blue:byte;
+   end;
     x: Integer;
     Colour : string;
     F : file;
@@ -144,150 +143,142 @@ begin
 end;
 
 Procedure CreateBlankPalette(SHPPalette:TPalette);
-var x : integer;
+var
+   x : integer;
 begin
-for x := 0 to 255 do
-SHPPalette[x] := RGB(255-x,255-x,255-x);
+   for x := 0 to 255 do
+      SHPPalette[x] := RGB(255-x,255-x,255-x);
 end;
 
 Procedure CreateBlankPalette_True(SHPPalette:TPalette);
-var x : integer;
+var
+   x : integer;
 begin
-for x := 0 to 255 do
-SHPPalette[x] := 0;
+   for x := 0 to 255 do
+      SHPPalette[x] := 0;
 end;
 
 // Loads JASC 8Bit Palette into the SHPPalette
 procedure LoadJASCPaletteFromFile(Filename : string; var Palette:TPalette);
 var
-Palette_f : array [0..255] of record
-red,green,blue:byte;
-end;
-    signature,binaryvalue:string[10];
-    x,colours : Integer;
-    F : text;
-    R,G,B : byte;
+   Palette_f : array [0..255] of record
+      red,green,blue:byte;
+   end;
+   signature,binaryvalue:string[10];
+   x,colours : Integer;
+   F : text;
+   R,G,B : byte;
 begin
+   // open palette file
+   AssignFile(F,Filename);
+   Reset(F);
 
-     // open palette file
-     AssignFile(F,Filename);
-     Reset(F);
+   {Jasc format validation}
+   readln(F,signature); {JASC-PAL}
+   readln(F,binaryvalue); {0100}
+   readln(F,colours); {256 (number of colours)}
 
-     {Jasc format validation}
-     readln(F,signature); {JASC-PAL}
-     readln(F,binaryvalue); {0100}
-     readln(F,colours); {256 (number of colours)}
+   if (signature <> 'JASC-PAL') then
+      MessageBox(0,'Error: JASC Signature Incorrect','Load Palette Error',0)
+   else if ((binaryvalue <> '0100') or (colours <> 256)) then
+      MessageBox(0,'Error: Palette Must Be 8Bit(256 Colours)','Load Palette Error',0)
+   else
+   Begin
+      {Now, convert colour per colour}
+      for x:= 0 to 255 do
+      begin
+         {read source info}
+         readln(F,R,G,B);
 
-     if (signature <> 'JASC-PAL') then
-     MessageBox(0,'Error: JASC Signature Incorrect','Load Palette Error',0)
-     else
-     if ((binaryvalue <> '0100') or (colours <> 256)) then
-     MessageBox(0,'Error: Palette Must Be 8Bit(256 Colours)','Load Palette Error',0)
-     else
-     Begin
-     {Now, convert colour per colour}
-         for x:=0 to 255 do
-         begin
-            {read source info}
-            readln(F,R,G,B);
+         {Note: No colour conversion needed since JASC-PAL colours are the same as SHPPalette ones}
+         Palette_f[x].red := r;
+         Palette_f[x].green := g;
+         Palette_f[x].blue := b;
 
-            {Note: No colour conversion needed since JASC-PAL colours are the same as SHPPalette ones}
-            Palette_f[x].red := r;
-            Palette_f[x].green := g;
-            Palette_f[x].blue := b;
-
-            Palette[x] := RGB(Palette_f[x].red,Palette_f[x].green,Palette_f[x].blue);
-         end;
-     end;
-     CloseFile(F);
+         Palette[x] := RGB(Palette_f[x].red,Palette_f[x].green,Palette_f[x].blue);
+      end;
+   end;
+   CloseFile(F);
 end;
 
 // Saves the SHPPalette As JASC-PAL
 procedure SavePaletteToJASCFile(Filename : string; var SHPPalette:TPalette);
 var
-    signature,binaryvalue:string[10];
-    x,colours : Integer;
-    F : text;
+   signature,binaryvalue:string[10];
+   x,colours : Integer;
+   F : text;
 begin
+   AssignFile(F,Filename);
+   Rewrite(F);
 
-     AssignFile(F,Filename);
-     Rewrite(F);
+   signature := 'JASC-PAL';
+   binaryvalue := '0100';
+   colours := 256;
+   writeln(F,signature); {JASC-PAL}
+   writeln(F,binaryvalue); {0100}
+   writeln(F,colours); {256 (number of colours)}
 
-     signature := 'JASC-PAL';
-     binaryvalue := '0100';
-     colours := 256;
-     writeln(F,signature); {JASC-PAL}
-     writeln(F,binaryvalue); {0100}
-     writeln(F,colours); {256 (number of colours)}
+   for x := 0 to 255 do
+      writeln(F,inttostr(GetRValue(SHPPalette[x]))+' ',inttostr(GetGValue(SHPPalette[x]))+' ',GetBValue(SHPPalette[x]));
 
-     for x := 0 to 255 do
-     writeln(F,inttostr(GetRValue(SHPPalette[x]))+' ',inttostr(GetGValue(SHPPalette[x]))+' ',GetBValue(SHPPalette[x]));
-
-     CloseFile(F);
+   CloseFile(F);
 end;
 
 procedure PaletteGradient(var SHPPalette:TPalette; StartNum,EndNum :byte; StartColour,EndColour : TColor);
 var
-X,Distance : integer;
-StepR,StepG,StepB : Real;
-R,G,B : integer;
+   X,Distance : integer;
+   StepR,StepG,StepB : Real;
+   R,G,B : integer;
 begin
+   Distance := EndNum-StartNum;
 
-Distance := EndNum-StartNum;
+   if Distance = 0 then // Catch the Divison By 0's
+   begin
+      MessageBox(0,'Error: PaletteGradient Needs Start Num And '+#13+#13+'End Num To Be Different Numbers','PaletteGradient Input Error',0);
+      Exit;
+   end;
 
-if Distance = 0 then // Catch the Divison By 0's
-begin
-MessageBox(0,'Error: PaletteGradient Needs Start Num And '+#13+#13+'End Num To Be Different Numbers','PaletteGradient Input Error',0);
-Exit;
-end;
+   StepR := (Max(GetRValue(EndColour),GetRValue(StartColour)) - Min(GetRValue(EndColour),GetRValue(StartColour))) / Distance;
+   StepG := (Max(GetGValue(EndColour),GetGValue(StartColour)) - Min(GetGValue(EndColour),GetGValue(StartColour))) / Distance;
+   StepB := (Max(GetBValue(EndColour),GetBValue(StartColour)) - Min(GetBValue(EndColour),GetBValue(StartColour))) / Distance;
 
-StepR := (Max(GetRValue(EndColour),GetRValue(StartColour)) - Min(GetRValue(EndColour),GetRValue(StartColour))) / Distance;
-StepG := (Max(GetGValue(EndColour),GetGValue(StartColour)) - Min(GetGValue(EndColour),GetGValue(StartColour))) / Distance;
-StepB := (Max(GetBValue(EndColour),GetBValue(StartColour)) - Min(GetBValue(EndColour),GetBValue(StartColour))) / Distance;
+   if GetRValue(EndColour) < GetRValue(StartColour) then
+      StepR := -StepR;
 
-if GetRValue(EndColour) < GetRValue(StartColour) then
-StepR := -StepR;
+   if GetGValue(EndColour) < GetGValue(StartColour) then
+      StepG := -StepG;
 
-if GetGValue(EndColour) < GetGValue(StartColour) then
-StepG := -StepG;
+   if GetBValue(EndColour) < GetBValue(StartColour) then
+      StepB := -StepB;
 
-if GetBValue(EndColour) < GetBValue(StartColour) then
-StepB := -StepB;
+   R := GetRValue(StartColour);
+   G := GetGValue(StartColour);
+   B := GetBValue(StartColour);
 
-R := GetRValue(StartColour);
-G := GetGValue(StartColour);
-B := GetBValue(StartColour);
+   for x := StartNum to EndNum do
+   begin
+      if Round(R + StepR) < 0 then
+         R := 0
+      else
+         R := Round(R + StepR);
+      if Round(G + StepG) < 0 then
+         G := 0
+      else
+         G := Round(G + StepG);
+      if Round(B + StepB) < 0 then
+         B := 0
+      else
+         B := Round(B + StepB);
 
-for x := StartNum to EndNum do
-begin
-if Round(R + StepR) < 0 then
-R := 0
-else
-R := Round(R + StepR);
+      if R > 255 then
+         R := 255;
+      if G > 255 then
+         G := 255;
+      if B > 255 then
+         B := 255;
 
-if Round(G + StepG) < 0 then
-G := 0
-else
-G := Round(G + StepG);
-
-if Round(B + StepB) < 0 then
-B := 0
-else
-B := Round(B + StepB);
-
-if R > 255 then
-R := 255;
-
-if G > 255 then
-G := 255;
-
-if B > 255 then
-B := 255;
-
-
-SHPPalette[x] := RGB(R,G,B);
-end;
-
+      SHPPalette[x] := RGB(R,G,B);
+   end;
 end;
 
 

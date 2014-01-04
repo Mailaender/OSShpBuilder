@@ -78,6 +78,10 @@ object FrmImportImageAsSHP: TFrmImportImageAsSHP
     TabOrder = 4
     object TabSheet1: TTabSheet
       Caption = 'Main'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Label1: TLabel
         Left = 8
         Top = 8
@@ -203,7 +207,7 @@ object FrmImportImageAsSHP: TFrmImportImageAsSHP
           AutoDropDown = True
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight, akBottom]
-          ItemHeight = 13
+          ItemHeight = 0
           ParentShowHint = False
           ShowHint = True
           TabOrder = 0
@@ -217,7 +221,7 @@ object FrmImportImageAsSHP: TFrmImportImageAsSHP
           AutoDropDown = True
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight, akBottom]
-          ItemHeight = 13
+          ItemHeight = 0
           ParentShowHint = False
           ShowHint = True
           TabOrder = 1
@@ -327,7 +331,7 @@ object FrmImportImageAsSHP: TFrmImportImageAsSHP
         Width = 289
         Height = 21
         Style = csDropDownList
-        ItemHeight = 13
+        ItemHeight = 0
         TabOrder = 5
         OnChange = CbTargetChange
       end

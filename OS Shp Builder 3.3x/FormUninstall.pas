@@ -47,6 +47,7 @@ type
       { Private declarations }
       procedure DeleteDirectory(const _DirName: string);
       function DeleteInstalledFiles: boolean;
+      function IsFileInUse(const _FileName: string): Boolean;
    public
       { Public declarations }
       UninstallationCompleted, ForceInstall: boolean;
@@ -153,28 +154,25 @@ begin
       begin
          // First we do the final bomb: a .bat file that either delete OS SHP
          // Builder executable alone or the whole directory... and itself.
-         AssignFile(F, '../../uninstall.bat');
+         AssignFile(F, 'uninstall.bat');
          ReWrite(F);
          // Write ping to make it sleep and give time to OS SHP Builder to close.
          GetSystemDirectory(Buffer,255);
          WriteLn(F, IncludeTrailingBackSlash(StrPas(Buffer)) + 'ping 1.0.0.0 -n 1 -w 3000');
-         // Write file deletion or dir deletion.
+         // Delete the executable
+         WriteLn(F, 'del SHP_Builder.exe');
+         // Write dir deletion if necessary.
          if RbDeleteAllFiles.Checked then
          begin
             // Delete the whole directory.
-            WriteLn(F, 'rmdir /q /s ' + ExtractFilePath(ParamStr(0)));
-         end
-         else
-         begin
-            // Delete only the executable.
-            WriteLn(F, 'del ' + ParamStr(0));
+            WriteLn(F, 'RD /S /Q "' + ExtractFileDir(ParamStr(0)) + '"');
          end;
-         // self kill goes here.
+         // self kill goes here if necessary.
          Writeln(F, 'del uninstall.bat');
          CloseFile(F);
+         ShellExecute (0, 'open', pChar ('uninstall.bat'), pChar (''), pChar (ExtractFileDir(ParamStr(0))), SW_HIDE);
          Application.Terminate;
          Close;
-         ShellExecute (0, 'open', pChar ('../../uninstall.bat'), pChar (''), pChar (ExtractFileDir(ParamStr(0))), SW_HIDE);
       end;
    end;
 end;
@@ -292,30 +290,36 @@ var
    f: TSearchRec;
    path,Name: String;
 begin
-   Path := _DirName + '*.*';
+   if not DirectoryExists(IncludeTrailingPathDelimiter(_DirName)) then
+      exit;
+
+   Path := IncludeTrailingPathDelimiter(_DirName) + '*.*';
    // Delete all files.
    if FindFirst(path,faAnyFile + faHidden,f) = 0 then
    begin
       repeat
          Name := IncludeTrailingPathDelimiter(_DirName) + f.Name;
-         LbFilename.Caption := Name;
-         if DeleteFile(Name) then
+         if FileExists(Name) and (not IsFileInUse(Name)) then
          begin
-            MMReport.Lines.Add(Name + ' has been deleted.');
-         end
-         else
-         begin
-            MMReport.Lines.Add(Name + ' has been skipped.');
+            LbFilename.Caption := Name;
+            if DeleteFile(Name) then
+            begin
+               MMReport.Lines.Add(Name + ' has been deleted.');
+            end
+            else
+            begin
+               MMReport.Lines.Add(Name + ' has been skipped.');
+            end;
          end;
       until FindNext(f) <> 0;
    end;
    FindClose(f);
    // Delete all subdirectories.
-   Path := _DirName + '*';
+   Path := IncludeTrailingPathDelimiter(_DirName) + '*';
    if FindFirst(path,faDirectory,f) = 0 then
    begin
       repeat
-         if (CompareStr(f.Name,'.') <> 0) and (CompareStr(f.Name, '..') <> 0) then
+         if (CompareStr(f.Name,'.') <> 0) and (CompareStr(f.Name, '..') <> 0) and (CompareStr(f.Name, 'SHP_Builder.exe') <> 0) then
          begin
             Name := IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(_DirName) + f.Name);
             if DirectoryExists(Name) then // It sounds unnecessary, but for some reason, it may catch some weird dirs sometimes.
@@ -327,7 +331,19 @@ begin
       until FindNext(f) <> 0;
    end;
    FindClose(f);
-   RmDir(_DirName);
+   try
+      RmDir(_DirName);
+   except
+      // do nothing. Does it silence down the program on I/O error 32?
+   end;
+   if DirectoryExists(_DirName) then // It sounds unnecessary, but for some reason, it may catch some weird dirs sometimes.
+   begin
+      MMReport.Lines.Add(_DirName + ' has been skipped for now.');
+   end
+   else
+   begin
+      MMReport.Lines.Add(_DirName + ' has been cleaned.');
+   end;
 end;
 
 function TFrmUninstall.DeleteInstalledFiles: boolean;
@@ -394,5 +410,17 @@ begin
    Result := true;
 end;
 
+// copied from: http://stackoverflow.com/questions/16287983/why-do-i-get-i-o-error-32-even-though-the-file-isnt-open-in-any-other-program
+function TFrmUninstall.IsFileInUse(const _FileName: string): Boolean;
+var
+   HFileRes: HFILE;
+begin
+   Result := False;
+   if not FileExists(_FileName) then Exit;
+   HFileRes := CreateFile(PChar(_FileName), GENERIC_READ or GENERIC_WRITE, 0, nil, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+   Result := (HFileRes = INVALID_HANDLE_VALUE);
+   if not Result then
+      CloseHandle(HFileRes);
+end;
 
 end.

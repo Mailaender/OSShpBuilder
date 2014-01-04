@@ -17,10 +17,10 @@ uses
   FormMirrorSHP, FormInstall, XPMan;
 
 Const
-   SHP_BUILDER_VER = '3.37';
+   SHP_BUILDER_VER = '3.38';
 {$IFDEF _BETA}
-   SHP_BUILDER_BETA_VER = '20 (z6.4)';
-   SHP_BUILDER_INTERNAL_VERSION = '3.369920.z6.4';
+   SHP_BUILDER_BETA_VER = '1 (z6.4)';
+   SHP_BUILDER_INTERNAL_VERSION = '3.37.99.001.z6.4';
 {$ENDIF}
    SHP_BUILDER_TITLE = ' Open Source SHP Builder';
    SHP_BUILDER_BY = 'Banshee & Stucuk';
@@ -3518,13 +3518,16 @@ Procedure TSHPBuilderFrmMain.SetPalette(_Filename:string);
 begin
    if ActiveData <> nil then
    begin
-      LoadAPaletteFromFile(_Filename,ActiveData^.SHPPalette); // Makes it JASC Compatible
-      GenerateShadowCache(ActiveData);
-      ActiveData^.SHPPaletteFilename := _Filename;
-      PaletteLoaded(_Filename);
-      OtherOptionsData.LastPalettePath := _Filename;
-      if ActiveForm <> nil then
-         ActiveForm^.RefreshImage;
+      if FileExists(_Filename) then
+      begin
+         LoadAPaletteFromFile(_Filename,ActiveData^.SHPPalette); // Makes it JASC Compatible
+         GenerateShadowCache(ActiveData);
+         ActiveData^.SHPPaletteFilename := _Filename;
+         PaletteLoaded(_Filename);
+         OtherOptionsData.LastPalettePath := _Filename;
+         if ActiveForm <> nil then
+            ActiveForm^.RefreshImage;
+      end;
    end;
 end;
 
@@ -3772,16 +3775,19 @@ end;
 
 procedure TSHPBuilderFrmMain.NewWindow1Click(Sender: TObject);
 begin
-   SetIsEditable(False);
-   if GenerateNewWindow(ActiveData) then
+   if ActiveData <> nil then 
    begin
-      LoadNewSHPImageSettings(ActiveData,ActiveForm^);
-   end
-   else
-   begin
-      ShowMessage('MDI Error: Could not create window due to low memory!');
+      SetIsEditable(False);
+      if GenerateNewWindow(ActiveData) then
+      begin
+         LoadNewSHPImageSettings(ActiveData,ActiveForm^);
+      end
+      else
+      begin
+         ShowMessage('MDI Error: Could not create window due to low memory!');
+      end;
+      SetIsEditable(True);
    end;
-   SetIsEditable(True);
 end;
 
 procedure TSHPBuilderFrmMain.Preview1Click(Sender: TObject);
