@@ -9,7 +9,7 @@ uses
 
 type
    TRGB32 = packed record
-      R, G, B, A: byte;
+      B, G, R, A: byte;
    end;
 
    TColorArray = Array [0..MaxInt div SizeOf(TRGB32) - 1] of TRGB32;
@@ -253,9 +253,9 @@ var
    hexacolor : ^integer;
 begin
    hexacolor := @color;
-   Result.B := ( hexacolor^ and  $000000FF );
+   Result.R := ( hexacolor^ and  $000000FF );
    Result.G := ( hexacolor^ and  $0000FF00 ) shr 8;
-   Result.R := ( hexacolor^ and  $00FF0000 ) shr 16;
+   Result.B := ( hexacolor^ and  $00FF0000 ) shr 16;
    Result.A := 255;
 end;
 
@@ -563,7 +563,6 @@ var
    x, y, right, bottom: integer;
    line : TScanline;
 begin
-   
    ShpContext := Data;
    right := s.X + s.Width - 1;
    bottom := s.Y + s.Height - 1;
@@ -574,8 +573,7 @@ begin
       if ( y < 0) or (y >= bmp.Height) then ShowMessage( Format('DrawFrameImage: Scanline: %d', [y]) );
       line := bmp.Scanline[y];
 
-      for x := s.X to right do
-      begin
+      for x := s.X to right do begin
          line[x] := ColorToRGB32( OpositeColour( ShpContext^.SHPPalette[ ShpContext^.SHP.Data[FrameIndex].FrameImage[x, y] ]));
       end;
    end;
@@ -668,7 +666,7 @@ begin
    bmp.SetSize(imgBackground.Width, imgBackground.Height);
    bmp.PixelFormat := pf32bit;
 
-   DrawChessboardGrid(bmp, 10, clGray, clWhite);
+   DrawChessboardGrid(bmp, 10, clLtGray, clWhite);
 
    imgBackground.Canvas.CopyRect( 
       Bounds(0, 0, imgBackground.Picture.Bitmap.Width, imgBackground.Picture.Bitmap.Width), 
@@ -697,7 +695,7 @@ begin
    bmp := TBitmap.Create;
    bmp.Canvas.Brush.Handle;// ?? to make the bitmap transparent
    bmp.SetSize(ShpContext^.SHP.Header.Width, ShpContext^.SHP.Header.Height);
-   bmp.PixelFormat := pf32bit;
+   bmp.PixelFormat := pf32bit;// Blue Green Red Alpha
 
    bgColor := ColorToRGB32( ShpContext^.ShpPalette[0] );
    gridColor := GetOppositeRGB32( bgColor );
