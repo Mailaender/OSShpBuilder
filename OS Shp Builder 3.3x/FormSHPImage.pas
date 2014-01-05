@@ -245,7 +245,6 @@ end;
 //---------------------------------------------
 // Convert TColor to TRGB32
 // - NOTES -
-// TRGB32 : R, G, B, A
 // TColor : B, G, R, A
 //---------------------------------------------
 function TFrmSHPImage.ColorToRGB32(const color : TColor) : TRGB32;

@@ -31,7 +31,7 @@ procedure Rectangle_dotted(const _SHP: TSHP; var _TempView: TObjectData; var _Te
 procedure Elipse(var _Tempview: TObjectData; var _TempView_no : integer; _Xpos,_Ypos,_Xpos2,_Ypos2:Integer; _Fill: Boolean);
 
 // Brush
-procedure BrushTool(var _SHP: TSHP; var _TempView: TObjectData; var _TempView_no: integer; _Xc,_Yc,_BrushMode,_Colour: Integer);
+procedure BrushTool(var _SHP: TSHP; var _TempView: TObjectData; var _TempView_no: integer; _Xc,_Yc,_BrushMode,_Colour: TColor);
 
 // DarkenLighten
 procedure BrushToolDarkenLighten(var _SHP:TSHP; _Frame: Word; _Xc, _Yc: Integer; _BrushMode: Integer); overload;
@@ -1544,7 +1544,7 @@ end;
 // Draw Brush - Preview
 //---------------------------------------------
 // Note: BrushToolDarkenLighten Code Taken From Voxel Section Editor and adapted to this program
-procedure BrushTool(var _SHP: TSHP; var _TempView: TObjectData; var _TempView_no: integer; _Xc,_Yc,_BrushMode,_Colour: Integer);
+procedure BrushTool(var _SHP: TSHP; var _TempView: TObjectData; var _TempView_no: integer; _Xc,_Yc,_BrushMode,_Colour: TColor);
 var
    Shape: Array[-5..5,-5..5] of 0..1;
    i,j,r1,r2: Integer;
@@ -1598,7 +1598,11 @@ begin
       begin
          if Shape[i, j] = 1 then
          begin
-            Add2DPointToTempViewUnsafe(_TempView, _TempView_No, Max(Min(_Xc + i, _SHP.Header.Width - 1), 0), Max(Min(_Yc + j, _SHP.Header.Height - 1), 0));
+            SetLength(_Tempview, _Tempview_No + 1);
+            _Tempview[_Tempview_no].X := Max(Min(_Xc + i, _SHP.Header.Width - 1), 0);
+            _TempView[_Tempview_no].Y := Max(Min(_Yc + j, _SHP.Header.Height - 1), 0);
+            _TempView[_TempView_no].Colour := _Colour;
+            inc(_Tempview_no);
          end;
       end;
    end;
