@@ -5,39 +5,40 @@ uses Windows, Graphics, SHP_Image, SHP_File, math, Palette, Colour_list, SHP_Col
      SHP_Engine_CCMs;
 
 
+type
+   FloodSet = (Left,Right,Up,Down);
+   StackType = record
+      Dir: set of FloodSet;
+      p: TPoint2D;
+   end;
+
 // Functions
 
 // Line
-function GetGradient(last,first : TPoint2D) : single;
-
-procedure PreviewLine(var tempview : TObjectData; var tempViewLength : integer; var last,first : TPoint2D);
+function GetGradient(_Last,_First : TPoint2D) : single;
+procedure DrawLine(var _Tempview : TObjectData; var _TempView_no : integer; var _Last,_First : TPoint2D);
 
 // Flood And Fill
-procedure FloodFillTool(var SHP: TSHP; Frame,Xpos,Ypos: Integer; Colour : byte);
-procedure FloodFillGradientTool(var SHP: TSHP; Frame,Xpos,Ypos: Integer; Palette : TPalette; Colour : byte);
-procedure FloodFillWithBlur(var SHP: TSHP; Frame,Xpos,Ypos: Integer; Palette : TPalette; Colour,Alg : byte);
+procedure FloodFillTool(var _SHP: TSHP; _Frame,_Xpos,_Ypos: Integer; _Colour : byte);
+procedure FloodFillGradientTool(var _SHP: TSHP; _Frame,_Xpos,_Ypos: Integer; const _Palette : TPalette; _Colour : byte);
+procedure FloodFillWithBlur(var _SHP: TSHP; _Frame,_Xpos,_Ypos: Integer; var _Palette : TPalette; _Colour,_Alg : byte);
 
 // Rectangle
-procedure Rectangle(var tempView: TObjectData; var tempViewLength : integer; x1, y1, x2, y2 : Integer; doFill: Boolean);
-procedure Rectangle_dotted(const SHP: TSHP; var TempView: TObjectData; var TempView_no:integer; const SHPPalette:TPalette; Frame: Word; Xpos,Ypos,Xpos2,Ypos2:Integer);
+procedure Rectangle(var _Tempview: TObjectData; var _TempView_no : integer; _Xpos,_Ypos,_Xpos2,_Ypos2:Integer; _Fill: Boolean);
+procedure Rectangle_dotted(const _SHP: TSHP; var _TempView: TObjectData; var _TempView_no:integer; const _SHPPalette:TPalette; _Frame: Word; _Xpos, _Ypos, _Xpos2, _Ypos2:Integer);
 
 // Elipse
-procedure Elipse(var Tempview: TObjectData; var TempView_no : integer; Xpos,Ypos,Xpos2,Ypos2:Integer; Fill: Boolean);
+procedure Elipse(var _Tempview: TObjectData; var _TempView_no : integer; _Xpos,_Ypos,_Xpos2,_Ypos2:Integer; _Fill: Boolean);
 
 // Brush
-procedure BrushTool(var SHP: TSHP; var TempView: TObjectData; var tempViewLength: integer; Xc, Yc, BrushMode, Colour: TColor);
-
+procedure BrushTool(var _SHP: TSHP; var _TempView: TObjectData; var _TempView_no: integer; _Xc,_Yc,_BrushMode,_Colour: Integer);
 
 // DarkenLighten
-procedure BrushToolDarkenLighten(var SHP:TSHP; Frame: Word; Xc,Yc: Integer; BrushMode: Integer); overload;
-procedure BrushToolDarkenLighten(var SHP:TSHP; var TempView: TObjectData; var TempView_no: integer; Frame: Word; Xc,Yc: Integer; BrushMode: Integer); overload;
-function darkenlightenv(Darken:boolean; Current_Value,Value : byte) : byte;
+procedure BrushToolDarkenLighten(var _SHP:TSHP; _Frame: Word; _Xc, _Yc: Integer; _BrushMode: Integer); overload;
+procedure BrushToolDarkenLighten(var _SHP:TSHP; var _TempView: TObjectData; var _TempView_no: integer; _Frame: Word; _Xc, _Yc: Integer; _BrushMode: Integer); overload;
 
 // Damager
-procedure AddColourToSHP(var SHP : TSHP; var Palette: TPalette; frameIndex, x, y, alg:Integer; var List, Last : listed_colour; bias, division:byte);
-procedure AddColourToTempview(const SHP:TSHP; var Palette: TPalette; var Tempview: TObjectData; var TempView_no : integer; Frame,Xpos,Ypos,alg:Integer; var List,Last:listed_colour; bias,division:byte);
-
-procedure Crash(const SHP: TSHP; var Palette: TPalette; var tempView: TObjectData; var tempViewLength : integer; Xpos,Ypos:Integer; const frameIndex: integer; const Alg : integer); overload;
+procedure Crash(const SHP: TSHP; var Palette: TPalette; var Tempview: TObjectData; var TempView_no : integer; Xpos,Ypos:Integer; const Frame: integer; const Alg : integer); overload;
 procedure Crash(var SHP: TSHP; var Palette: TPalette; Xpos,Ypos:Integer; const Frame: integer; const Alg : integer); overload;
 procedure CrashLight(const SHP: TSHP; var Palette: TPalette; var Tempview: TObjectData; var TempView_no : integer; Xpos,Ypos:Integer; const Frame: integer; const Alg : integer); overload;
 procedure CrashLight(var SHP: TSHP; var Palette: TPalette; Xpos,Ypos:Integer; const Frame: integer; const Alg : integer); overload;
@@ -49,284 +50,225 @@ procedure Dirty(const SHP: TSHP; var Palette: TPalette; var Tempview: TObjectDat
 procedure Dirty(var SHP: TSHP; var Palette: TPalette; Xpos,Ypos:Integer; const Frame: integer; const Alg : integer); overload;
 
 // Snowy
-procedure AddSnowColourToTempview(const SHP:TSHP; var Palette: TPalette; var Tempview: TObjectData; var TempView_no : integer; Frame,Xpos,Ypos,alg:Integer; var List,Last:listed_colour; bias,division:byte);
-procedure AddSnowColourToSHP(var SHP:TSHP; const Palette: TPalette; Frame,Xpos,Ypos,alg:Integer; var List,Last:listed_colour; bias,division:byte);
 procedure Snow(const SHP: TSHP; var Palette: TPalette; var Tempview: TObjectData; var TempView_no : integer; Xpos,Ypos:Integer; const Frame: integer; const Alg : integer); overload;
 procedure Snow(var SHP: TSHP; var Palette: TPalette; Xpos,Ypos:Integer; const Frame: integer; const Alg : integer); overload;
 
 // Etc...
-function InImageBounds(x,y : integer; const SHP:TSHP) : boolean;
-function OpositeColour(color : TColor) : tcolor;
+procedure Add2DPointToTempview(const _SHP:TSHP; var _TempView: TObjectData; var _TempView_no : integer; _Frame,_XPos,_YPos:Integer);
+procedure Add2DPointToTempviewUnsafe(var _TempView: TObjectData; var _TempView_No : integer; _XPos,_YPos:Integer);
+procedure AddTwo2DPointsToTempviewUnsafe(var _TempView: TObjectData; var _TempView_No : integer; _XPos1,_YPos1,_XPos2,_YPos2:Integer);
+procedure AddFour2DPointsToTempviewUnsafe(var _Tempview: TObjectData; var _TempView_no : integer; _XPos1,_YPos1,_XPos2,_YPos2,_XPos3,_YPos3,_XPos4,_YPos4:Integer);
+procedure AddAnyColourToTempview(const _SHP:TSHP; var _Tempview: TObjectData; var _TempView_no : integer; _Xpos,_Ypos: Integer; _Colour: TColor);
+procedure AddAnyColourToTempviewUnsafe(var _Tempview: TObjectData; var _TempView_no : integer; _Xpos,_Ypos: Integer; _Colour: TColor);
+procedure AddColourToTempView(const _SHP:TSHP; var _Palette: TPalette; var _Tempview: TObjectData; var _TempView_no : integer; _Frame,_Xpos,_Ypos,_Alg:Integer; var _List,_Last:listed_colour; _Bias,_Division:byte);
+procedure AddColourToSHP(var _SHP:TSHP; var _Palette: TPalette; _Frame,_Xpos,_Ypos,_Alg:Integer; var _List,_Last:listed_colour; _Bias,_Division:byte);
+procedure AddSnowColourToTempview(const _SHP:TSHP; var _Palette: TPalette; var _TempView: TObjectData; var _TempView_no : integer; _Frame,_Xpos,_Ypos,_Alg:Integer; var _List,_Last:listed_colour; _Bias,_Division:byte);
+procedure AddSnowColourToSHP(var _SHP:TSHP; const _Palette: TPalette; _Frame,_Xpos,_Ypos,_Alg:Integer; var _List,_Last:listed_colour; _Bias,_Division:byte);
+function OpositeColour(_Color : TColor) : tcolor;
+function DarkenLightenV(_Darken:boolean; _Current_Value, _Value : byte) : byte;
+function PointOK(const _SHP:TSHP; const _L: TPoint2D): Boolean; overload;
+function PointOK(const _SHP:TSHP; _X, _Y: integer): Boolean; overload;
 
 
 implementation
 
 uses FormMain;
 
-
 //---------------------------------------------
-// Get Gradient
+// Auxiliary Functions
 //---------------------------------------------
-function GetGradient(last, first : TPoint2D) : single;
+function GetGradient(_Last,_First : TPoint2D) : single;
 begin
-   if (first.X = last.X) or (first.Y = last.Y) then
+   if (_First.X = _Last.X) or (_First.Y = _Last.Y) then
       result := 0
    else
-      result := (first.Y-last.Y) / (first.X-last.X);
+      result := (_First.Y - _Last.Y) / (_First.X - _Last.X);
 end;
 
-{
-procedure TFrmSHPImage.SwapInt(var v0, v1 : integer);
-var
-   tmp : integer;
+function PointOK(const _SHP:TSHP; const _L: TPoint2D): Boolean;
 begin
-   v0 := tmp;
-   v0 := v1;
-   v1 := tmp;
+   Result := False;
+   if (_L.X < 0) or (_L.Y < 0) then Exit;
+   if (_L.X >= _SHP.Header.Width) or (_L.Y >= _SHP.Header.Height) then Exit;
+   Result := True;
 end;
 
-
-procedure TFrmSHPImage.Line(x0, y0, x1, y1 : integer; var pixels : TPixels);
-var
-   steep : boolean;
-   deltaX, deltaY,
-   yStep, error,
-   x, y : integer;
+function PointOK(const _SHP:TSHP; _X, _Y: integer): Boolean;
 begin
-   steep := abs(y1 - y0) > abs(x1 - x0);
-   if steep then begin
-      SwapInt(x0, y0);
-      SwapInt(x1, y1);
-   end;
-   if x0 > x1 then begin
-      SwapInt(x0, x1);
-      SwapInt(y0, y1);
-   end;
-
-   deltaX := x1 - x0;
-   deltaY := abs(y1 - y0);
-   error := deltaX / 2;
-   y := y0;
-   if(y0 < y1) then 
-      yStep := 1
-   else
-      yStep := -1;
-   for x := x0 to x1 then begin
-      if steep then 
-         pixels[y, x] := 1
-      else
-         pixels[x, y] := 1;
-      error := error - deltaY;
-      if error < 0 then begin
-         y := y + yStep;
-         error := error + deltaX;
-      end;
-   end;
+   Result := False;
+   if (_X < 0) or (_Y < 0) then Exit;
+   if (_X >= _SHP.Header.Width) or (_Y >= _SHP.Header.Height) then Exit;
+   Result := True;
 end;
-}
+
 
 
 //---------------------------------------------
-// Draw Straight Line - Preview
+// Draw Straight Line - on Preview
 //---------------------------------------------
-procedure PreviewLine(var tempview : TObjectData; var tempViewLength : integer; var last, first : TPoint2D);
+procedure DrawLine(var _Tempview : TObjectData; var _TempView_no : integer; var _Last,_First : TPoint2D);
 var
-   x, y : integer;
-   gradient, c : single;
+   x,y : integer;
+   gradient,c : single;
 begin
-   tempViewLength := 0;
-   SetLength(tempView, 0);
+   // Straight Line Equation : Y=MX+C
+   gradient := getgradient(_Last,_First);
+   c := _Last.Y-(_Last.X * gradient);
+   _TempView_no := 0;
+   SetLength(_Tempview,0);
 
-   gradient := GetGradient(last, first);
-   c := last.Y - (last.X * gradient);
-
-   if (gradient = 0) and (first.X = last.X) then
-      for y := min(first.Y,last.y) to max(first.Y,last.y) do
+   if (gradient=0) and (_First.X = _Last.X) then
+      for y := min(_First.Y,_Last.y) to max(_First.Y,_Last.y) do
       begin
-         tempViewLength := tempViewLength + 1;
-         SetLength(tempView, tempViewLength + 1);
-
-         tempView[tempViewLength].X := first.X;
-         tempView[tempViewLength].Y := y;
-      end  
-   else
-   if (gradient = 0) and (first.Y = last.Y) then
-      for x := min(first.x,last.x) to max(first.x,last.x) do
-      begin
-         tempViewLength := tempViewLength +1;
-         setlength(tempView,tempViewLength+1);
-
-         tempView[tempViewLength].X := x;
-         tempView[tempViewLength].Y := first.Y;
+         Add2DPointToTempViewUnsafe(_TempView, _TempView_No, _First.X, Y);
       end
-   else
-   begin
-      for x := min(first.X,last.X) to max(first.X,last.X) do
+      else if (gradient=0) and (_First.Y = _Last.Y) then
+         for x := min(_First.x,_Last.x) to max(_First.x,_Last.x) do
+         begin
+            Add2DPointToTempViewUnsafe(_TempView, _TempView_No, X, _First.Y);
+         end
+      else
       begin
-         tempViewLength := tempViewLength +1;
-         setlength(tempView,tempViewLength+1);
-
-         tempView[tempViewLength].X := x;
-         tempView[tempViewLength].Y := round((gradient*x)+c);
+         for x := min(_First.X,_Last.X) to max(_First.X,_Last.X) do
+         begin
+            Add2DPointToTempViewUnsafe(_TempView, _TempView_No, X, Round((gradient * x) + c));
+         end;
+         for y := min(_First.Y,_Last.Y) to max(_First.Y,_Last.Y) do
+         begin
+            Add2DPointToTempViewUnsafe(_TempView, _TempView_No, Round((y - c) / gradient), Y);
+         end;
       end;
-
-
-      for y := min(first.Y,last.Y) to max(first.Y,last.Y) do
-      begin
-         tempViewLength := tempViewLength +1;
-         setlength(tempView,tempViewLength+1);
-
-         tempView[tempViewLength].X := round((y-c)/ gradient);
-         tempView[tempViewLength].Y := y;
-      end;
-   end;
 end;
-
 
 //---------------------------------------------
 // Do Flood Fill - On frame
 //---------------------------------------------
-procedure FloodFillTool(var SHP: TSHP; Frame, Xpos, Ypos: Integer; Colour : byte);
-type
-   FloodSet = (Left,Right,Up,Down);
-   Flood2DPoint = record
-      X,Y: Integer;
-   end;
-   StackType = record
-      Dir: set of FloodSet;
-      p: Flood2DPoint;
-   end;
-
-   function PointOK(var SHP:TSHP; l: Flood2DPoint): Boolean;
-   begin
-      PointOK:=False;
-      if (l.X<0) or (l.Y<0) then Exit;
-      if (l.X>=SHP.Header.Width) or (l.Y>=SHP.Header.Height) then Exit;
-      PointOK:=True;
-   end;
+// Note: Flood Fill Code Taken From Voxel Section Editor and adapted to this program
+procedure FloodFillTool(var _SHP: TSHP; _Frame,_Xpos,_Ypos: Integer; _Colour : byte);
 var
    z1,z2: byte;
    i,j,k: Integer;         //this isn't 100% FloodFill, but function is very handy for user;
    Stack: Array of StackType; //this is the floodfill stack for my code
    SC,Sp: Integer; //stack counter and stack pointer
-   po: Flood2DPoint;
+   po: TPoint2D;
    Full: set of FloodSet;
    Done: Array of Array of Boolean;
 begin
-   SetLength(Done,SHP.Header.Width,SHP.Header.Height);
-   SetLength(Stack,SHP.Header.Width*SHP.Header.Height);
+   SetLength(Done,_SHP.Header.Width, _SHP.Header.Height);
+   SetLength(Stack,_SHP.Header.Width * _SHP.Header.Height);
    //this array avoids creation of extra stack objects when it isn't needed.
-   for i:=0 to SHP.Header.Width - 1 do
-      for j:=0 to SHP.Header.Height - 1 do
-         Done[i,j]:=False;
+   for i := 0 to _SHP.Header.Width - 1 do
+      for j := 0 to _SHP.Header.Height - 1 do
+         Done[i, j] := False;
 
-   z1 := SHP.Data[Frame].FrameImage[Xpos,Ypos];
-   SHP.Data[Frame].FrameImage[Xpos,Ypos] := Colour;
+   z1 := _SHP.Data[_Frame].FrameImage[_Xpos, _Ypos];
+   _SHP.Data[_Frame].FrameImage[_Xpos, _Ypos] := _Colour;
 
 
-   Full:=[Left,Right,Up,Down];
+   Full := [Left, Right, Up, Down];
    Sp:=0;
-   Stack[Sp].Dir:=Full;
-   Stack[Sp].p.X:=Xpos; Stack[Sp].p.Y:=Ypos;
+   Stack[Sp].Dir := Full;
+   Stack[Sp].p.X := _Xpos;
+   Stack[Sp].p.Y := _Ypos;
    SC:=1;
-   while (SC>0) do
+   while (SC > 0) do
    begin
       if Left in Stack[Sp].Dir then
       begin //it's in there - check left
          //not in there anymore! we're going to do that one now.
-         Stack[Sp].Dir:=Stack[Sp].Dir - [Left];
-         po:=Stack[Sp].p;
+         Stack[Sp].Dir := Stack[Sp].Dir - [Left];
+         po := Stack[Sp].p;
          Dec(po.X);
 
          //now check this point - only if it's within range, check it.
-         if PointOK(SHP,po) then
+         if PointOK(_SHP, po) then
          begin
-            z2 := SHP.Data[Frame].FrameImage[po.X,po.Y];
-            if z2=z1 then
+            z2 := _SHP.Data[_Frame].FrameImage[po.X, po.Y];
+            if z2 = z1 then
             begin
-               SHP.Data[Frame].FrameImage[po.X,po.Y] := Colour;
-               if not Done[po.X,po.Y] then
+               _SHP.Data[_Frame].FrameImage[po.X, po.Y] := _Colour;
+               if not Done[po.X, po.Y] then
                begin
-                  Stack[SC].Dir:=Full-[Right]; //Don't go back
-                  Stack[SC].p:=po;
+                  Stack[SC].Dir := Full - [Right]; //Don't go back
+                  Stack[SC].p := po;
                   Inc(SC);
                   Inc(Sp); //increase stack pointer
                end;
-               Done[po.X,po.Y]:=True;
+               Done[po.X, po.Y]:=True;
             end;
          end;
       end;
       if Right in Stack[Sp].Dir then
       begin //it's in there - check left
          //not in there anymore! we're going to do that one now.
-         Stack[Sp].Dir:=Stack[Sp].Dir - [Right];
-         po:=Stack[Sp].p;
+         Stack[Sp].Dir := Stack[Sp].Dir - [Right];
+         po := Stack[Sp].p;
          Inc(po.X);
          //now check this point - only if it's within range, check it.
-         if PointOK(SHP,po) then
+         if PointOK(_SHP, po) then
          begin
-            z2 := SHP.Data[Frame].FrameImage[po.X,po.Y];
-            if z2=z1 then
+            z2 := _SHP.Data[_Frame].FrameImage[po.X, po.Y];
+            if z2 = z1 then
             begin
-               SHP.Data[Frame].FrameImage[po.X,po.Y] := Colour;
-               if not Done[po.X,po.Y] then
+               _SHP.Data[_Frame].FrameImage[po.X, po.Y] := _Colour;
+               if not Done[po.X, po.Y] then
                begin
-                  Stack[SC].Dir:=Full-[Left]; //Don't go back
-                  Stack[SC].p:=po;
+                  Stack[SC].Dir := Full - [Left]; //Don't go back
+                  Stack[SC].p := po;
                   Inc(SC);
                   Inc(Sp); //increase stack pointer
                end;
-               Done[po.X,po.Y]:=True;
+               Done[po.X, po.Y] := True;
             end;
          end;
       end;
       if Up in Stack[Sp].Dir then
       begin //it's in there - check right
          //not in there anymore! we're going to do that one now.
-         Stack[Sp].Dir:=Stack[Sp].Dir - [Up];
-         po:=Stack[Sp].p;
+         Stack[Sp].Dir := Stack[Sp].Dir - [Up];
+         po := Stack[Sp].p;
          Dec(po.Y);
 
          //now check this point - only if it's within range, check it.
-         if PointOK(SHP,po) then
+         if PointOK(_SHP, po) then
          begin
-            z2 := SHP.Data[Frame].FrameImage[po.X,po.Y];
-            if z2=z1 then
+            z2 := _SHP.Data[_Frame].FrameImage[po.X, po.Y];
+            if z2 = z1 then
             begin
-               SHP.Data[Frame].FrameImage[po.X,po.Y] := Colour;
-               if not Done[po.X,po.Y] then
+               _SHP.Data[_Frame].FrameImage[po.X, po.Y] := _Colour;
+               if not Done[po.X, po.Y] then
                begin
-                  Stack[SC].Dir:=Full-[Down]; //Don't go back
-                  Stack[SC].p:=po;
+                  Stack[SC].Dir := Full - [Down]; //Don't go back
+                  Stack[SC].p := po;
                   Inc(SC);
                   Inc(Sp); //increase stack pointer
                end;
-               Done[po.X,po.Y]:=True;
+               Done[po.X, po.Y]:=True;
             end;
          end;
       end;
       if Down in Stack[Sp].Dir then
       begin //it's in there - check left
          //not in there anymore! we're going to do that one now.
-         Stack[Sp].Dir:=Stack[Sp].Dir - [Down];
-         po:=Stack[Sp].p;
+         Stack[Sp].Dir := Stack[Sp].Dir - [Down];
+         po := Stack[Sp].p;
          Inc(po.Y);
 
          //now check this point - only if it's within range, check it.
-         if PointOK(SHP,po) then
+         if PointOK(_SHP, po) then
          begin
-            z2 := SHP.Data[Frame].FrameImage[po.X,po.Y];
-            if z2=z1 then
+            z2 := _SHP.Data[_Frame].FrameImage[po.X, po.Y];
+            if z2 = z1 then
             begin
-               SHP.Data[Frame].FrameImage[po.X,po.Y] := Colour;
-               if not Done[po.X,po.Y] then
+               _SHP.Data[_Frame].FrameImage[po.X, po.Y] := _Colour;
+               if not Done[po.X, po.Y] then
                begin
-                  Stack[SC].Dir:=Full-[Up]; //Don't go back
-                  Stack[SC].p:=po;
+                  Stack[SC].Dir := Full - [Up]; //Don't go back
+                  Stack[SC].p := po;
                   Inc(SC);
                   Inc(Sp); //increase stack pointer
                end;
-               Done[po.X,po.Y]:=True;
+               Done[po.X, po.Y] := True;
             end;
          end;
       end;
@@ -337,158 +279,142 @@ begin
          //decrease stack pointer and stack count
       end;
    end;
-   SetLength(Stack,0); // Free Up Memory
-   SetLength(Done,0); // Free Up Memory
+   SetLength(Stack, 0); // Free Up Memory
+   SetLength(Done, 0); // Free Up Memory
 end;
 
 
 //---------------------------------------------
 // Do Flood Fill with Gradient - On frame
 //---------------------------------------------
-procedure FloodFillGradientTool(var SHP: TSHP; Frame,Xpos,Ypos: Integer; Palette : TPalette; Colour : byte);
-type
-   FloodSet = (Left,Right,Up,Down);
-   Flood2DPoint = record
-      X,Y: Integer;
-   end;
-   StackType = record
-      Dir: set of FloodSet;
-      p: Flood2DPoint;
-   end;
-   function PointOK(var SHP:TSHP; l: Flood2DPoint): Boolean;
-   begin
-      PointOK:=False;
-      if (l.X<0) or (l.Y<0) then Exit;
-      if (l.X>=SHP.Header.Width) or (l.Y>=SHP.Header.Height) then Exit;
-      PointOK:=True;
-   end;
+procedure FloodFillGradientTool(var _SHP: TSHP; _Frame,_Xpos,_Ypos: Integer; const _Palette : TPalette; _Colour : byte);
 var
    z1,z2: byte;
    i,j,k: Integer;         //this isn't 100% FloodFill, but function is very handy for user;
    Stack: Array of StackType; //this is the floodfill stack for my code
    SC,Sp: Integer; //stack counter and stack pointer
-   po: Flood2DPoint;
+   po: TPoint2D;
    Full: set of FloodSet;
    Done: Array of Array of Boolean;
    Cache : TCache;
 begin
    // 3.36: Build gradient cache
-   Cache := BuildCacheReplacementForGradients(Palette,SHP.Data[Frame].FrameImage[XPos,YPos],Colour);
+   Cache := BuildCacheReplacementForGradients(_Palette, _SHP.Data[_Frame].FrameImage[_XPos,_YPos], _Colour);
    // end of gradient cache code.
-   SetLength(Done,SHP.Header.Width,SHP.Header.Height);
-   SetLength(Stack,SHP.Header.Width*SHP.Header.Height);
+   SetLength(Done, _SHP.Header.Width, _SHP.Header.Height);
+   SetLength(Stack, _SHP.Header.Width * _SHP.Header.Height);
    //this array avoids creation of extra stack objects when it isn't needed.
-   for i:=0 to SHP.Header.Width - 1 do
-      for j:=0 to SHP.Header.Height - 1 do
-         Done[i,j]:=False;
+   for i := 0 to _SHP.Header.Width - 1 do
+      for j := 0 to _SHP.Header.Height - 1 do
+         Done[i, j] := False;
 
-   z1 := SHP.Data[Frame].FrameImage[Xpos,Ypos];
-   SHP.Data[Frame].FrameImage[Xpos,Ypos] := Colour;
+   z1 := _SHP.Data[_Frame].FrameImage[_Xpos,_Ypos];
+   _SHP.Data[_Frame].FrameImage[_Xpos,_Ypos] := _Colour;
 
-
-   Full:=[Left,Right,Up,Down];
-   Sp:=0;
-   Stack[Sp].Dir:=Full;
-   Stack[Sp].p.X:=Xpos; Stack[Sp].p.Y:=Ypos;
-   SC:=1;
-   while (SC>0) do
+   Full := [Left, Right, Up, Down];
+   Sp := 0;
+   Stack[Sp].Dir := Full;
+   Stack[Sp].p.X := _Xpos;
+   Stack[Sp].p.Y := _Ypos;
+   SC := 1;
+   while (SC > 0) do
    begin
       if Left in Stack[Sp].Dir then
       begin //it's in there - check left
          //not in there anymore! we're going to do that one now.
-         Stack[Sp].Dir:=Stack[Sp].Dir - [Left];
-         po:=Stack[Sp].p;
+         Stack[Sp].Dir := Stack[Sp].Dir - [Left];
+         po := Stack[Sp].p;
          Dec(po.X);
 
          //now check this point - only if it's within range, check it.
-         if PointOK(SHP,po) then
+         if PointOK(_SHP, po) then
          begin
-            z2 := SHP.Data[Frame].FrameImage[po.X,po.Y];
+            z2 := _SHP.Data[_Frame].FrameImage[po.X, po.Y];
             if z2 <> Cache[z2] then
             begin
-               SHP.Data[Frame].FrameImage[po.X,po.Y] := Cache[z2];
-               if not Done[po.X,po.Y] then
+               _SHP.Data[_Frame].FrameImage[po.X, po.Y] := Cache[z2];
+               if not Done[po.X, po.Y] then
                begin
-                  Stack[SC].Dir:=Full-[Right]; //Don't go back
-                  Stack[SC].p:=po;
+                  Stack[SC].Dir := Full - [Right]; //Don't go back
+                  Stack[SC].p := po;
                   Inc(SC);
                   Inc(Sp); //increase stack pointer
                end;
-               Done[po.X,po.Y]:=True;
+               Done[po.X, po.Y]:=True;
             end;
          end;
       end;
       if Right in Stack[Sp].Dir then
       begin //it's in there - check left
          //not in there anymore! we're going to do that one now.
-         Stack[Sp].Dir:=Stack[Sp].Dir - [Right];
-         po:=Stack[Sp].p;
+         Stack[Sp].Dir := Stack[Sp].Dir - [Right];
+         po := Stack[Sp].p;
          Inc(po.X);
          //now check this point - only if it's within range, check it.
-         if PointOK(SHP,po) then
+         if PointOK(_SHP, po) then
          begin
-            z2 := SHP.Data[Frame].FrameImage[po.X,po.Y];
+            z2 := _SHP.Data[_Frame].FrameImage[po.X, po.Y];
             if z2 <> Cache[z2] then
             begin
-               SHP.Data[Frame].FrameImage[po.X,po.Y] := Cache[z2];
-               if not Done[po.X,po.Y] then
+               _SHP.Data[_Frame].FrameImage[po.X, po.Y] := Cache[z2];
+               if not Done[po.X, po.Y] then
                begin
-                  Stack[SC].Dir:=Full-[Left]; //Don't go back
-                  Stack[SC].p:=po;
+                  Stack[SC].Dir := Full - [Left]; //Don't go back
+                  Stack[SC].p := po;
                   Inc(SC);
                   Inc(Sp); //increase stack pointer
                end;
-               Done[po.X,po.Y]:=True;
+               Done[po.X, po.Y] := True;
             end;
         end;
       end;
       if Up in Stack[Sp].Dir then
       begin //it's in there - check left
          //not in there anymore! we're going to do that one now.
-         Stack[Sp].Dir:=Stack[Sp].Dir - [Up];
-         po:=Stack[Sp].p;
+         Stack[Sp].Dir := Stack[Sp].Dir - [Up];
+         po := Stack[Sp].p;
          Dec(po.Y);
 
          //now check this point - only if it's within range, check it.
-         if PointOK(SHP,po) then
+         if PointOK(_SHP, po) then
          begin
-            z2 := SHP.Data[Frame].FrameImage[po.X,po.Y];
+            z2 := _SHP.Data[_Frame].FrameImage[po.X, po.Y];
             if z2 <> Cache[z2] then
             begin
-               SHP.Data[Frame].FrameImage[po.X,po.Y] := Cache[z2];
-               if not Done[po.X,po.Y] then
+               _SHP.Data[_Frame].FrameImage[po.X, po.Y] := Cache[z2];
+               if not Done[po.X, po.Y] then
                begin
-                  Stack[SC].Dir:=Full-[Down]; //Don't go back
-                  Stack[SC].p:=po;
+                  Stack[SC].Dir := Full - [Down]; //Don't go back
+                  Stack[SC].p := po;
                   Inc(SC);
                   Inc(Sp); //increase stack pointer
                end;
-               Done[po.X,po.Y]:=True;
+               Done[po.X, po.Y] := True;
             end;
          end;
       end;
       if Down in Stack[Sp].Dir then
       begin //it's in there - check left
          //not in there anymore! we're going to do that one now.
-         Stack[Sp].Dir:=Stack[Sp].Dir - [Down];
-         po:=Stack[Sp].p;
+         Stack[Sp].Dir := Stack[Sp].Dir - [Down];
+         po := Stack[Sp].p;
          Inc(po.Y);
 
          //now check this point - only if it's within range, check it.
-         if PointOK(SHP,po) then
+         if PointOK(_SHP, po) then
          begin
-            z2 := SHP.Data[Frame].FrameImage[po.X,po.Y];
+            z2 := _SHP.Data[_Frame].FrameImage[po.X, po.Y];
             if z2 <> Cache[z2] then
             begin
-               SHP.Data[Frame].FrameImage[po.X,po.Y] := Cache[z2];
-               if not Done[po.X,po.Y] then
+               _SHP.Data[_Frame].FrameImage[po.X, po.Y] := Cache[z2];
+               if not Done[po.X, po.Y] then
                begin
-                  Stack[SC].Dir:=Full-[Up]; //Don't go back
-                  Stack[SC].p:=po;
+                  Stack[SC].Dir := Full-[Up]; //Don't go back
+                  Stack[SC].p := po;
                   Inc(SC);
                   Inc(Sp); //increase stack pointer
                end;
-               Done[po.X,po.Y]:=True;
+               Done[po.X, po.Y] := True;
             end;
          end;
       end;
@@ -499,37 +425,20 @@ begin
          //decrease stack pointer and stack count
       end;
    end;
-   SetLength(Stack,0); // Free Up Memory
-   SetLength(Done,0); // Free Up Memory
+   SetLength(Stack, 0); // Free Up Memory
+   SetLength(Done, 0); // Free Up Memory
 end;
-
 
 //---------------------------------------------
 // Do Flood Fill with Blur - On frame
 //---------------------------------------------
-procedure FloodFillWithBlur(var SHP: TSHP; Frame,Xpos,Ypos: Integer; Palette : TPalette; Colour,Alg : byte);
+procedure FloodFillWithBlur(var _SHP: TSHP; _Frame,_Xpos,_Ypos: Integer; var _Palette : TPalette; _Colour,_Alg : byte);
 type
-   FloodSet = (Left,Right,Up,Down);
-   Flood2DPoint = record
-      X,Y: Integer;
-   end;
-   StackType = record
-      Dir: set of FloodSet;
-      p: Flood2DPoint;
-   end;
    TFinalListElement = record
-      P : Flood2DPoint;
+      P : TPoint2D;
       Colour : integer;
    end;
    TFinalList = array of TFinalListElement;
-   function PointOK(const SHP:TSHP; l: Flood2DPoint): Boolean;
-   begin
-      PointOK:=False;
-      if (l.X<0) or (l.Y<0) then Exit;
-      if (l.X>=SHP.Header.Width) or (l.Y>=SHP.Header.Height) then Exit;
-      PointOK:=True;
-   end;
-
    procedure AddToFinalList(var _FinalList : TFinalList; _x, _y :integer);
    begin
       SetLength(_FinalList,High(_FinalList)+2);
@@ -537,10 +446,10 @@ type
       _FinalList[High(_FinalList)].P.Y := _y;
    end;
 
-   function GetBlurredColour(const _SHP: TSHP; const _Palette : TPalette; var _List,_Last: listed_colour; const _Point : Flood2DPoint; _Frame,_Alg : integer): integer;
+   function GetBlurredColour(const _SHP: TSHP; const _Palette : TPalette; var _List,_Last: listed_colour; const _Point : TPoint2D; _Frame,_Alg : integer): integer;
    var
       count,x,y : integer;
-      CurrentPoint : Flood2DPoint;
+      CurrentPoint : TPoint2D;
       TempR,TempG,TempB : integer;
    begin
       Result := -1;
@@ -554,7 +463,7 @@ type
          begin
             CurrentPoint.X := x;
             CurrentPoint.Y := y;
-            if PointOK(_SHP,CurrentPoint) then
+            if PointOK(_SHP, CurrentPoint) then
             begin
                inc(count);
                TempR := TempR + GetRValue(_Palette[_SHP.Data[_Frame].FrameImage[x,y]]);
@@ -571,12 +480,13 @@ type
       // Now, we get the result.
       Result := LoadPixel(_List,_Last,_alg,RGB(TempR,TempG,TempB));
    end;
+
 var
    z1,z2: byte;
    i,j,k: Integer;         //this isn't 100% FloodFill, but function is very handy for user;
    Stack: Array of StackType; //this is the floodfill stack for my code
    SC,Sp: Integer; //stack counter and stack pointer
-   po: Flood2DPoint;
+   po: TPoint2D;
    Full: set of FloodSet;
    Done: Array of Array of Boolean;
    // The new things from the Blurr one.
@@ -587,129 +497,129 @@ begin
    // 3.36: FinalList initialization
    SetLength(FinalList,0);
    // Set List and Last
-   GenerateColourList(Palette,List,Last,Palette[0],true,false,false,false);
+   GenerateColourList(_Palette,List,Last,_Palette[0],true,false,false,false);
    // Prepare Bank
    PrepareBank(Start,List,Last);
 
    // Old code resumes here...
-   SetLength(Done,SHP.Header.Width,SHP.Header.Height);
-   SetLength(Stack,SHP.Header.Width*SHP.Header.Height);
+   SetLength(Done, _SHP.Header.Width, _SHP.Header.Height);
+   SetLength(Stack, _SHP.Header.Width * _SHP.Header.Height);
    //this array avoids creation of extra stack objects when it isn't needed.
-   for i:=0 to SHP.Header.Width - 1 do
-      for j:=0 to SHP.Header.Height - 1 do
-         Done[i,j]:=False;
+   for i := 0 to _SHP.Header.Width - 1 do
+      for j := 0 to _SHP.Header.Height - 1 do
+         Done[i, j] := False;
 
-   z1 := SHP.Data[Frame].FrameImage[Xpos,Ypos];
-   SHP.Data[Frame].FrameImage[Xpos,Ypos] := Colour;
+   z1 := _SHP.Data[_Frame].FrameImage[_Xpos, _Ypos];
+   _SHP.Data[_Frame].FrameImage[_Xpos, _Ypos] := _Colour;
 
-
-   Full:=[Left,Right,Up,Down];
-   Sp:=0;
-   Stack[Sp].Dir:=Full;
-   Stack[Sp].p.X:=Xpos; Stack[Sp].p.Y:=Ypos;
-   SC:=1;
-   while (SC>0) do
+   Full := [Left, Right, Up, Down];
+   Sp := 0;
+   Stack[Sp].Dir := Full;
+   Stack[Sp].p.X := _Xpos;
+   Stack[Sp].p.Y := _Ypos;
+   SC := 1;
+   while (SC > 0) do
    begin
       if Left in Stack[Sp].Dir then
       begin //it's in there - check left
          //not in there anymore! we're going to do that one now.
-         Stack[Sp].Dir:=Stack[Sp].Dir - [Left];
-         po:=Stack[Sp].p;
+         Stack[Sp].Dir := Stack[Sp].Dir - [Left];
+         po := Stack[Sp].p;
          Dec(po.X);
 
          //now check this point - only if it's within range, check it.
-         if PointOK(SHP,po) then
+         if PointOK(_SHP, po) then
          begin
-            z2 := SHP.Data[Frame].FrameImage[po.X,po.Y];
-            if z2=z1 then
+            z2 := _SHP.Data[_Frame].FrameImage[po.X, po.Y];
+            if z2 = z1 then
             begin
-               SHP.Data[Frame].FrameImage[po.X,po.Y] := Colour;
-               if not Done[po.X,po.Y] then
+               _SHP.Data[_Frame].FrameImage[po.X, po.Y] := _Colour;
+               if not Done[po.X, po.Y] then
                begin
-                  Stack[SC].Dir:=Full-[Right]; //Don't go back
-                  Stack[SC].p:=po;
+                  Stack[SC].Dir := Full - [Right]; //Don't go back
+                  Stack[SC].p := po;
                   Inc(SC);
                   Inc(Sp); //increase stack pointer
-                  AddToFinalList(FinalList,po.x,po.y);
+                  AddToFinalList(FinalList, po.x, po.y);
                end;
-               Done[po.X,po.Y]:=True;
+               Done[po.X, po.Y] := True;
             end;
          end;
       end;
       if Right in Stack[Sp].Dir then
       begin //it's in there - check left
          //not in there anymore! we're going to do that one now.
-         Stack[Sp].Dir:=Stack[Sp].Dir - [Right];
-         po:=Stack[Sp].p;
+         Stack[Sp].Dir := Stack[Sp].Dir - [Right];
+         po := Stack[Sp].p;
          Inc(po.X);
          //now check this point - only if it's within range, check it.
-         if PointOK(SHP,po) then
+         if PointOK(_SHP, po) then
          begin
-            z2 := SHP.Data[Frame].FrameImage[po.X,po.Y];
-            if z2=z1 then
+            z2 := _SHP.Data[_Frame].FrameImage[po.X, po.Y];
+            if z2 = z1 then
             begin
-               SHP.Data[Frame].FrameImage[po.X,po.Y] := Colour;
-               if not Done[po.X,po.Y] then
+               _SHP.Data[_Frame].FrameImage[po.X, po.Y] := _Colour;
+               if not Done[po.X, po.Y] then
                begin
-                  Stack[SC].Dir:=Full-[Left]; //Don't go back
-                  Stack[SC].p:=po;
+                  Stack[SC].Dir := Full - [Left]; //Don't go back
+                  Stack[SC].p := po;
                   Inc(SC);
                   Inc(Sp); //increase stack pointer
-                  AddToFinalList(FinalList,po.x,po.y);
+                  AddToFinalList(FinalList, po.x, po.y);
                end;
-               Done[po.X,po.Y]:=True;
+               Done[po.X, po.Y] := True;
             end;
          end;
       end;
       if Up in Stack[Sp].Dir then
       begin //it's in there - check right
          //not in there anymore! we're going to do that one now.
-         Stack[Sp].Dir:=Stack[Sp].Dir - [Up];
-         po:=Stack[Sp].p;
+         Stack[Sp].Dir := Stack[Sp].Dir - [Up];
+         po := Stack[Sp].p;
          Dec(po.Y);
 
          //now check this point - only if it's within range, check it.
-         if PointOK(SHP,po) then
+         if PointOK(_SHP, po) then
          begin
-            z2 := SHP.Data[Frame].FrameImage[po.X,po.Y];
-            if z2=z1 then
+            z2 := _SHP.Data[_Frame].FrameImage[po.X, po.Y];
+            if z2 = z1 then
             begin
-               SHP.Data[Frame].FrameImage[po.X,po.Y] := Colour;
-               if not Done[po.X,po.Y] then
+               _SHP.Data[_Frame].FrameImage[po.X, po.Y] := _Colour;
+               if not Done[po.X, po.Y] then
                begin
-                  Stack[SC].Dir:=Full-[Down]; //Don't go back
-                  Stack[SC].p:=po;
+                  Stack[SC].Dir := Full - [Down]; //Don't go back
+                  Stack[SC].p := po;
                   Inc(SC);
                   Inc(Sp); //increase stack pointer
-                  AddToFinalList(FinalList,po.x,po.y);
+                  AddToFinalList(FinalList, po.x, po.y);
                end;
-               Done[po.X,po.Y]:=True;
+               Done[po.X, po.Y] := True;
             end;
          end;
       end;
       if Down in Stack[Sp].Dir then
       begin //it's in there - check left
          //not in there anymore! we're going to do that one now.
-         Stack[Sp].Dir:=Stack[Sp].Dir - [Down];
-         po:=Stack[Sp].p;
+         Stack[Sp].Dir := Stack[Sp].Dir - [Down];
+         po := Stack[Sp].p;
          Inc(po.Y);
 
          //now check this point - only if it's within range, check it.
-         if PointOK(SHP,po) then
+         if PointOK(_SHP, po) then
          begin
-            z2 := SHP.Data[Frame].FrameImage[po.X,po.Y];
-            if z2=z1 then
+            z2 := _SHP.Data[_Frame].FrameImage[po.X, po.Y];
+            if z2 = z1 then
             begin
-               SHP.Data[Frame].FrameImage[po.X,po.Y] := Colour;
-               if not Done[po.X,po.Y] then
+               _SHP.Data[_Frame].FrameImage[po.X, po.Y] := _Colour;
+               if not Done[po.X, po.Y] then
                begin
-                  Stack[SC].Dir:=Full-[Up]; //Don't go back
-                  Stack[SC].p:=po;
+                  Stack[SC].Dir := Full - [Up]; //Don't go back
+                  Stack[SC].p := po;
                   Inc(SC);
                   Inc(Sp); //increase stack pointer
-                  AddToFinalList(FinalList,po.x,po.y);
+                  AddToFinalList(FinalList, po.x, po.y);
                end;
-               Done[po.X,po.Y]:=True;
+               Done[po.X, po.Y] := True;
             end;
          end;
       end;
@@ -720,347 +630,199 @@ begin
          //decrease stack pointer and stack count
       end;
    end;
-   SetLength(Stack,0); // Free Up Memory
-   SetLength(Done,0); // Free Up Memory
+   SetLength(Stack, 0); // Free Up Memory
+   SetLength(Done, 0); // Free Up Memory
 
    // 3.36: Now, we go to the exclusive blurr part.
    // Step 1: Scan Final List to get the new colours.
    for i := Low(FinalList) to High(FinalList) do
    begin
-      FinalList[i].Colour := GetBlurredColour(SHP,Palette,List,Last,FinalList[i].P,Frame,Alg);
+      FinalList[i].Colour := GetBlurredColour(_SHP, _Palette, List, Last, FinalList[i].P, _Frame, _Alg);
    end;
    // Step 2: Now we paint the whole thing.
    for i := Low(FinalList) to High(FinalList) do
    begin
       if FinalList[i].Colour > -1 then
-         SHP.Data[Frame].FrameImage[FinalList[i].P.X,FinalList[i].P.Y] := FinalList[i].Colour;
+         _SHP.Data[_Frame].FrameImage[FinalList[i].P.X, FinalList[i].P.Y] := FinalList[i].Colour;
    end;
-   SetLength(FinalList,0);
+   SetLength(FinalList, 0);
 end;
-
-
 
 //---------------------------------------------
 // Draw Rectangle - Preview
 //---------------------------------------------
-procedure Rectangle(var tempView: TObjectData; var tempViewLength : integer; x1, y1, x2, y2 : Integer; doFill: Boolean);
+procedure Rectangle(var _Tempview: TObjectData; var _TempView_no : integer; _Xpos,_Ypos,_Xpos2,_Ypos2:Integer; _Fill: Boolean);
 var
-  i, j: Integer;
-  Inside, Exact: Integer;
+   i, j: Integer;
+   Inside, Exact: Integer;
 begin
-   tempViewLength := 0;
-   SetLength(tempView, tempViewLength);
+   _Tempview_no := 0;
+   SetLength(_Tempview, 0);
 
-
-   for i:= Min(x1, x2) to Max(x1, x2) do 
+   for i := Min(_Xpos, _Xpos2) to Max(_Xpos, _Xpos2) do
    begin
-      for j:=Min(y1, y2) to Max(y1, y2) do 
+      for j := Min(_Ypos, _Ypos2) to Max(_Ypos, _Ypos2) do
       begin
-         Inside := 0; 
+         Inside := 0;
          Exact := 0;
 
-         if (i > Min(x1, x2)) and (i < Max(x1, x2)) then Inc(Inside);
-         if (j > Min(y1, y2)) and (j < Max(y1, y2)) then Inc(Inside);
-         if (i = Min(x1, x2)) or (i = Max(x1, x2)) then Inc(Exact);
-         if (j = Min(y1, y2)) or (j = Max(y1, y2)) then Inc(Exact);
+         if (i > Min(_Xpos, _Xpos2)) and (i < Max(_Xpos, _Xpos2)) then
+            Inc(Inside);
+         if (j > Min(_Ypos, _Ypos2)) and (j < Max(_Ypos, _Ypos2)) then
+            Inc(Inside);
+         if (i = Min(_Xpos, _Xpos2)) or (i = Max(_Xpos, _Xpos2)) then
+            Inc(Exact);
+         if (j = Min(_Ypos, _Ypos2)) or (j = Max(_Ypos, _Ypos2)) then
+            Inc(Exact);
 
-         if doFill then 
+         if _Fill then
          begin
-            if Inside + Exact = 2 then 
+            if (Inside + Exact) = 2 then
             begin
-               tempViewLength := tempViewLength + 1;
-               SetLength(tempview, tempViewLength + 1);
-               tempview[tempViewLength].X := i;
-               tempview[tempViewLength].Y := j;
+               Add2DPointToTempViewUnsafe(_TempView, _TempView_No, i, j);
             end;
-         end 
-         else 
+         end
+         else
          begin
-            if (Exact >= 1) and (Inside + Exact = 2) then 
+            if (Exact >= 1) and (Inside + Exact = 2) then
             begin
-              tempViewLength := tempViewLength +1;
-              SetLength(tempview, tempViewLength +1);
-              tempview[tempViewLength].X := i;
-              tempview[tempViewLength].Y := j;
+               Add2DPointToTempViewUnsafe(_TempView, _TempView_No, i, j);
             end;
+         end;
       end;
-    end;
-  end;
+   end;
 end;
-
 
 //---------------------------------------------
 // Draw Ellipse - Preview
 //---------------------------------------------
-procedure Elipse(var Tempview: TObjectData; var TempView_no : integer; Xpos,Ypos,Xpos2,Ypos2:Integer; Fill: Boolean);
+procedure Elipse(var _Tempview: TObjectData; var _TempView_no : integer; _Xpos,_Ypos,_Xpos2,_Ypos2:Integer; _Fill: Boolean);
 var
-  i,j,k,a,b,c,d,last:smallint;
+   i, j, k, a, b, c, d, Last:smallint;
 begin
-
-  tempview_no := 0;
-  setlength(tempview,0);
-  if abs(Xpos - Xpos2) >= abs(Ypos - Ypos2) then
-  begin
-     a := sqr(abs((Xpos - Xpos2) div 2));
-     b := sqr(abs((Ypos - Ypos2) div 2));
-     c := (Ypos + Ypos2) div 2;
-     d := (Xpos + Xpos2) div 2;
-     if (a >= 1) and not Fill then
-     begin
-        last := round(sqrt((b * (a - ((d - Min(Xpos,Xpos2)) * (d - Min(Xpos,Xpos2))))) div a));
-        for i:=(d - Min(Xpos,Xpos2)) downto 0 do
-        begin
-           j := round(sqrt((b * (a - (i * i))) div a));
-           if abs(j - last) > 1 then
-           begin
-              for k := abs(j - last) downto 0 do
-              begin
-                 tempview_no := tempview_no +1;
-                 setlength(tempview,tempview_no +4);
-                 tempview[tempview_no].X := d + i;
-                 tempview[tempview_no].Y := c + j - k;
-                 tempview_no := tempview_no +1;
-                 tempview[tempview_no].X := d + i;
-                 tempview[tempview_no].Y := c - j + k;
-                 tempview_no := tempview_no +1;
-                 tempview[tempview_no].X := d - i;
-                 tempview[tempview_no].Y := c + j - k;
-                 tempview_no := tempview_no +1;
-                 tempview[tempview_no].X := d - i;
-                 tempview[tempview_no].Y := c - j + k;
-              end;
-           end
-           else
-           begin
-              tempview_no := tempview_no +1;
-              setlength(tempview,tempview_no +4);
-              tempview[tempview_no].X := d + i;
-              tempview[tempview_no].Y := c + j;
-              tempview_no := tempview_no +1;
-              tempview[tempview_no].X := d + i;
-              tempview[tempview_no].Y := c - j;
-              tempview_no := tempview_no +1;
-              tempview[tempview_no].X := d - i;
-              tempview[tempview_no].Y := c + j;
-              tempview_no := tempview_no +1;
-              tempview[tempview_no].X := d - i;
-              tempview[tempview_no].Y := c - j;
-           end;
-           last := j;
-        end;
-     end
-     else if (a >= 1) and Fill then
-     begin
-        for i:= (d - Min(Xpos,Xpos2)) downto 0 do
-        begin
-           j := round(sqrt((b * (a - (i * i))) div a));
-           for k := (c - j) to (c + j) do
-           begin
-              tempview_no := tempview_no +1;
-              setlength(tempview,tempview_no +2);
-              tempview[tempview_no].X := d + i;
-              tempview[tempview_no].Y := k;
-              tempview_no := tempview_no +1;
-              tempview[tempview_no].X := d - i;
-              tempview[tempview_no].Y := k;
-           end;
-        end;
-     end
-     else
-     begin
-        tempview_no := tempview_no +1;
-        setlength(tempview,tempview_no +1);
-        tempview[tempview_no].X := Xpos;
-        tempview[tempview_no].Y := Ypos;
-     end;
-  end
-  else
-  begin
-     a := sqr(abs((Ypos - Ypos2) div 2));
-     b := sqr(abs((Xpos - Xpos2) div 2));
-     c := (Xpos + Xpos2) div 2;
-     d := (Ypos + Ypos2) div 2;
-     if (a >= 1) and not Fill then
-     begin
-        last := round(sqrt((b * (a - ((d - Min(Ypos,Ypos2)) * (d - Min(Ypos,Ypos2))))) div a));
-        for i:= (d - Min(Ypos,Ypos2)) downto 0 do
-        begin
-           j := round(sqrt((b * (a - (i * i))) div a));
-           if abs(j - last) > 1 then
-           begin
-              for k := abs(j - last) downto 0 do
-              begin
-                 tempview_no := tempview_no +1;
-                 setlength(tempview,tempview_no +4);
-                 tempview[tempview_no].X := c + j - k;
-                 tempview[tempview_no].Y := d + i;
-                 tempview_no := tempview_no +1;
-                 tempview[tempview_no].X := c - j + k;
-                 tempview[tempview_no].Y := d + i;
-                 tempview_no := tempview_no +1;
-                 tempview[tempview_no].X := c + j - k;
-                 tempview[tempview_no].Y := d - i;
-                 tempview_no := tempview_no +1;
-                 tempview[tempview_no].X := c - j + k;
-                 tempview[tempview_no].Y := d - i;
-              end;
-           end
-           else
-           begin
-              tempview_no := tempview_no +1;
-              setlength(tempview,tempview_no +4);
-              tempview[tempview_no].X := c + j;
-              tempview[tempview_no].Y := d + i;
-              tempview_no := tempview_no +1;
-              tempview[tempview_no].X := c - j;
-              tempview[tempview_no].Y := d + i;
-              tempview_no := tempview_no +1;
-              tempview[tempview_no].X := c + j;
-              tempview[tempview_no].Y := d - i;
-              tempview_no := tempview_no +1;
-              tempview[tempview_no].X := c - j;
-              tempview[tempview_no].Y := d - i;
-           end;
-           last := j;
-        end;
-     end
-     else if (a >= 1) and Fill then
-     begin
-        for i:= (d - Min(Ypos,Ypos2)) downto 0 do
-        begin
-           j := round(sqrt((b * (a - (i * i))) div a));
-           for k := (c - j) to (c + j) do
-           begin
-              tempview_no := tempview_no +1;
-              setlength(tempview,tempview_no +2);
-              tempview[tempview_no].X := k;
-              tempview[tempview_no].Y := d + i;
-              tempview_no := tempview_no +1;
-              tempview[tempview_no].X := k;
-              tempview[tempview_no].Y := d - i;
-           end;
-        end;
-     end
-     else
-     begin
-        tempview_no := tempview_no +1;
-        setlength(tempview,tempview_no +1);
-        tempview[tempview_no].X := Xpos;
-        tempview[tempview_no].Y := Ypos;
-     end;
-  end;
-end;
-
-
-//---------------------------------------------
-// Add Color - Preview
-//---------------------------------------------
-procedure AddColourToTempview(const SHP:TSHP; var Palette: TPalette; var Tempview: TObjectData; var TempView_no : integer; Frame,Xpos,Ypos,alg:Integer; var List,Last:listed_colour; bias,division:byte);
-begin
-   if (YPos < SHP.Header.Height) and (YPos >= 0) then
-      if (XPos < SHP.Header.Width) and (XPos >= 0) then
-         if (SHP.Data[Frame].FrameImage[XPos,YPos] <> 0) then
+   _Tempview_no := 0;
+   SetLength(_Tempview, 0);
+   if abs(_Xpos - _Xpos2) >= abs(_Ypos - _Ypos2) then
+   begin
+      a := Sqr(abs((_Xpos - _Xpos2) div 2));
+      b := Sqr(abs((_Ypos - _Ypos2) div 2));
+      c := (_Ypos + _Ypos2) div 2;
+      d := (_Xpos + _Xpos2) div 2;
+      if (a >= 1) and not _Fill then
+      begin
+         Last := Round(Sqrt((b * (a - ((d - Min(_Xpos, _Xpos2)) * (d - Min(_Xpos, _Xpos2))))) div a));
+         for i := (d - Min(_Xpos, _Xpos2)) downto 0 do
          begin
-            inc(tempview_no);
-            SetLength(Tempview,Tempview_No + 1);
-            Tempview[Tempview_no].X := XPos;
-            TempView[Tempview_no].Y := YPos;
-            TempView[Tempview_no].colour := Palette[LoadPixel(List,Last,alg,RGB(GetRValue(Palette[SHP.Data[Frame].FrameImage[XPos,YPos]]) - (bias * (GetRValue(Palette[SHP.Data[Frame].FrameImage[XPos,YPos]]) div division)),GetGValue(Palette[SHP.Data[Frame].FrameImage[XPos,YPos]]) - (bias *(GetGValue(Palette[SHP.Data[Frame].FrameImage[XPos,YPos]]) div division)),GetBValue(Palette[SHP.Data[Frame].FrameImage[XPos,YPos]]) - (bias * (GetBValue(Palette[SHP.Data[Frame].FrameImage[XPos,YPos]]) div division))))];
-            TempView[tempview_no].colour_used := true;
+            j := Round(Sqrt((b * (a - (i * i))) div a));
+            if abs(j - Last) > 1 then
+            begin
+               for k := abs(j - Last) downto 0 do
+               begin
+                  AddFour2DPointsToTempViewUnsafe(_TempView, _TempView_No, d + i, c + j - k, d + i, c - j + k, d - i, c + j - k, d - i, c - j + k);
+               end;
+            end
+            else
+            begin
+               AddFour2DPointsToTempViewUnsafe(_TempView, _TempView_No, d + i, c + j, d + i, c - j, d - i, c + j, d - i, c - j);
+            end;
+            last := j;
          end;
-end;
-
-
-//---------------------------------------------
-// Add Color - On frame
-//---------------------------------------------
-procedure AddColourToSHP(var SHP : TSHP; var Palette: TPalette; frameIndex, x, y, alg:Integer; var List, Last : listed_colour; bias, division:byte);
-begin
-   if (y < SHP.Header.Height) and (y >= 0) then
-      if (x < SHP.Header.Width) and (x >= 0) then
-         if (SHP.Data[frameIndex].FrameImage[x, y] <> 0) then
+      end
+      else if (a >= 1) and _Fill then
+      begin
+         for i := (d - Min(_Xpos, _Xpos2)) downto 0 do
          begin
-            SHP.Data[frameIndex].FrameImage[x, y] := 
-               LoadPixel(List, Last, alg, 
-                  RGB( 
-                     GetRValue(Palette[SHP.Data[frameIndex].FrameImage[x, y]]) - (bias * (GetRValue(Palette[SHP.Data[frameIndex].FrameImage[x, y]]) div division)),
-                     GetGValue(Palette[SHP.Data[frameIndex].FrameImage[x, y]]) - (bias * (GetGValue(Palette[SHP.Data[frameIndex].FrameImage[x, y]]) div division)),
-                     GetBValue(Palette[SHP.Data[frameIndex].FrameImage[x, y]]) - (bias * (GetBValue(Palette[SHP.Data[frameIndex].FrameImage[x, y]]) div division))
-                     )
-                  );
+            j := Round(Sqrt((b * (a - (i * i))) div a));
+            for k := (c - j) to (c + j) do
+            begin
+               AddTwo2DPointsToTempViewUnsafe(_TempView, _TempView_No, d + i, k, d - i, k);
+            end;
          end;
-end;
-
-
-//---------------------------------------------
-// Add Snow Color - Preview
-//---------------------------------------------
-procedure AddSnowColourToTempview(const SHP:TSHP; var Palette: TPalette; var Tempview: TObjectData; var TempView_no : integer; Frame,Xpos,Ypos,alg:Integer; var List,Last:listed_colour; bias,division:byte);
-begin
-   if (YPos < SHP.Header.Height) and (YPos >= 0) then
-      if (XPos < SHP.Header.Width) and (XPos >= 0) then
-         if (SHP.Data[Frame].FrameImage[XPos,YPos] <> 0) then
+      end
+      else
+      begin
+         Add2DPointToTempViewUnsafe(_TempView, _TempView_No, _XPos, _YPos);
+      end;
+   end
+   else
+   begin
+      a := Sqr(abs((_Ypos - _Ypos2) div 2));
+      b := Sqr(abs((_Xpos - _Xpos2) div 2));
+      c := (_Xpos + _Xpos2) div 2;
+      d := (_Ypos + _Ypos2) div 2;
+      if (a >= 1) and not _Fill then
+      begin
+         Last := Round(Sqrt((b * (a - ((d - Min(_Ypos, _Ypos2)) * (d - Min(_Ypos, _Ypos2))))) div a));
+         for i := (d - Min(_Ypos, _Ypos2)) downto 0 do
          begin
-            inc(tempview_no);
-            SetLength(Tempview,Tempview_No + 1);
-            Tempview[Tempview_no].X := XPos;
-            TempView[Tempview_no].Y := YPos;
-            TempView[Tempview_no].colour := Palette[LoadPixel(List,Last,alg,RGB(GetRValue(Palette[SHP.Data[Frame].FrameImage[XPos,YPos]]) + (bias * ((255 - GetRValue(Palette[SHP.Data[Frame].FrameImage[XPos,YPos]])) div division)),GetGValue(Palette[SHP.Data[Frame].FrameImage[XPos,YPos]]) + (bias *((255 - GetGValue(Palette[SHP.Data[Frame].FrameImage[XPos,YPos]])) div division)),GetBValue(Palette[SHP.Data[Frame].FrameImage[XPos,YPos]]) + (bias * ((255 - GetBValue(Palette[SHP.Data[Frame].FrameImage[XPos,YPos]])) div division))))];
-            TempView[tempview_no].colour_used := true;
+            j := Round(Sqrt((b * (a - (i * i))) div a));
+            if abs(j - Last) > 1 then
+            begin
+               for k := abs(j - Last) downto 0 do
+               begin
+                  AddFour2DPointsToTempViewUnsafe(_TempView, _TempView_No, c + j - k, d + i, c - j + k, d + i, c + j - k, d - i, c - j + k, d - i);
+               end;
+            end
+            else
+            begin
+               AddFour2DPointsToTempViewUnsafe(_TempView, _TempView_No, c + j, d + i, c - j, d + i, c + j, d - i, c - j, d - i);
+            end;
+            Last := j;
          end;
-end;
-
-
-//---------------------------------------------
-// Add Snow Color - On frame
-//---------------------------------------------
-procedure AddSnowColourToSHP(var SHP:TSHP; const Palette: TPalette; Frame,Xpos,Ypos,alg:Integer; var List,Last:listed_colour; bias,division:byte);
-begin
-   if (YPos < SHP.Header.Height) and (YPos >= 0) then
-      if (XPos < SHP.Header.Width) and (XPos >= 0) then
-         if (SHP.Data[Frame].FrameImage[XPos,YPos] <> 0) then
+      end
+      else if (a >= 1) and _Fill then
+      begin
+         for i := (d - Min(_Ypos, _Ypos2)) downto 0 do
          begin
-            SHP.Data[Frame].FrameImage[XPos,YPos] := LoadPixel(List,Last,alg,RGB(GetRValue(Palette[SHP.Data[Frame].FrameImage[XPos,YPos]]) + (bias * ((255 - GetRValue(Palette[SHP.Data[Frame].FrameImage[XPos,YPos]])) div division)),GetGValue(Palette[SHP.Data[Frame].FrameImage[XPos,YPos]]) + (bias * ((255 - GetGValue(Palette[SHP.Data[Frame].FrameImage[XPos,YPos]])) div division)),GetBValue(Palette[SHP.Data[Frame].FrameImage[XPos,YPos]]) + (bias * ((255 - GetBValue(Palette[SHP.Data[Frame].FrameImage[XPos,YPos]])) div division))));
+            j := Round(Sqrt((b * (a - (i * i))) div a));
+            for k := (c - j) to (c + j) do
+            begin
+               AddTwo2DPointsToTempViewUnsafe(_TempView, _TempView_No, k, d + i, k, d - i);
+            end;
          end;
+      end
+      else
+      begin
+         Add2DPointToTempViewUnsafe(_TempView, _TempView_No, _XPos, _YPos);
+      end;
+   end;
 end;
-
 
 //---------------------------------------------
 // Add Crash - Preview
 //---------------------------------------------
-procedure Crash(const SHP: TSHP; var Palette: TPalette; var tempView: TObjectData; var tempViewLength : integer; Xpos,Ypos:Integer; const frameIndex: integer; const Alg : integer); overload;
+procedure Crash(const SHP: TSHP; var Palette: TPalette; var Tempview: TObjectData; var TempView_no : integer; Xpos,Ypos:Integer; const Frame: integer; const Alg : integer); overload;
 var
    List,Last: listed_colour;
    Start : colour_element;
 begin
-   tempViewLength := 0;
-   SetLength(tempview, tempViewLength); // Clean
+   tempview_no := 0;
+   setlength(tempview,0); // Clean
 
    // Set List and Last
-   GenerateColourList(Palette, List, Last, Palette[0], true, true, true);
+   GenerateColourList(Palette,List,Last,Palette[0],true,true,true);
    // Prepare Bank
    PrepareBank(Start,List,Last);
 
    // Now, grab the colours -- First row (XPos-1)
-   AddColourToTempview( SHP, Palette, tempView, tempViewLength, frameIndex, Xpos-1, Ypos-1,alg,List,Last,1,3);
-   AddColourToTempview( SHP, Palette, tempView, tempViewLength, frameIndex, Xpos-1, Ypos,alg,List,Last,2,3);
-   AddColourToTempview( SHP, Palette, tempView, tempViewLength, frameIndex, Xpos-1, Ypos+1,alg,List,Last,1,3);
+   AddColourToTempview(SHP,Palette,Tempview,TempView_no,Frame,Xpos-1,Ypos-1,alg,List,Last,1,3);
+   AddColourToTempview(SHP,Palette,Tempview,TempView_no,Frame,Xpos-1,Ypos,alg,List,Last,2,3);
+   AddColourToTempview(SHP,Palette,Tempview,TempView_no,Frame,Xpos-1,Ypos+1,alg,List,Last,1,3);
 
    // middle row (XPos)
-   AddColourToTempview( SHP, Palette, tempView, tempViewLength, frameIndex, Xpos, Ypos-1, alg, List, Last, 2,3);
-   AddColourToTempview( SHP, Palette, tempView, tempViewLength, frameIndex, Xpos, Ypos, alg, List, Last, 3,4);
-   AddColourToTempview( SHP, Palette, tempView, tempViewLength, frameIndex, Xpos, Ypos+1, alg, List, Last, 2,3);
- 
+   AddColourToTempview(SHP,Palette,Tempview,TempView_no,Frame,Xpos,Ypos-1,alg,List,Last,2,3);
+   AddColourToTempview(SHP,Palette,Tempview,TempView_no,Frame,Xpos,Ypos,alg,List,Last,3,4);
+   AddColourToTempview(SHP,Palette,Tempview,TempView_no,Frame,Xpos,Ypos+1,alg,List,Last,2,3);
+
    // final row (XPos + 1)
-   AddColourToTempview( SHP, Palette, tempView, tempViewLength, frameIndex, Xpos+1, Ypos-1, alg,List,Last,1,3);
-   AddColourToTempview( SHP, Palette, tempView, tempViewLength, frameIndex, Xpos+1, Ypos, alg,List,Last,2,3);
-   AddColourToTempview( SHP, Palette, tempView, tempViewLength, frameIndex, Xpos+1, Ypos+1, alg,List,Last,1,3);
+   AddColourToTempview(SHP,Palette,Tempview,TempView_no,Frame,Xpos+1,Ypos-1,alg,List,Last,1,3);
+   AddColourToTempview(SHP,Palette,Tempview,TempView_no,Frame,Xpos+1,Ypos,alg,List,Last,2,3);
+   AddColourToTempview(SHP,Palette,Tempview,TempView_no,Frame,Xpos+1,Ypos+1,alg,List,Last,1,3);
 
    // Remove the trash:
    ClearColourList(List,Last);
    ClearBank(Start);
 end;
-
 
 //---------------------------------------------
 // Add Crash - On frame
@@ -1069,7 +831,10 @@ procedure Crash(var SHP: TSHP; var Palette: TPalette; Xpos,Ypos:Integer; const F
 var
   List,Last: listed_colour;
   Start : colour_element;
+//  l : text;  // Debug system (I had several problems to implement this tool)
 begin
+//  AssignFile(l,'e:\test.txt');
+//  Rewrite(l);
   // Set List and Last
   GenerateColourList(Palette,List,Last,Palette[0],true,true,true);
 
@@ -1095,7 +860,6 @@ begin
    ClearColourList(List,Last);
    ClearBank(Start);
 end;
-
 
 //---------------------------------------------
 // Add Crash Light - Preview
@@ -1167,7 +931,6 @@ begin
    ClearColourList(List,Last);
    ClearBank(Start);
 end;
-
 
 //---------------------------------------------
 // Add Crash Big - Preview
@@ -1250,9 +1013,8 @@ begin
   ClearBank(Start);
 end;
 
-
 //---------------------------------------------
-// Add Crasg Big - On frame
+// Add Crash Big - On frame
 //---------------------------------------------
 procedure CrashBig(var SHP: TSHP; var Palette: TPalette; Xpos,Ypos:Integer; const Frame: integer; const Alg : integer); overload;
 var
@@ -1329,7 +1091,6 @@ begin
    ClearColourList(List,Last);
    ClearBank(Start);
 end;
-
 
 //---------------------------------------------
 // Add Crash Big Light - Preview
@@ -1412,7 +1173,6 @@ begin
   ClearBank(Start);
 end;
 
-
 //---------------------------------------------
 // Add Crash Big Light - On frame
 //---------------------------------------------
@@ -1492,9 +1252,8 @@ begin
    ClearBank(Start);
 end;
 
-
 //---------------------------------------------
-// Add Dirt - Preview
+// Add Dirty - Preview
 //---------------------------------------------
 procedure Dirty(const SHP: TSHP; var Palette: TPalette; var Tempview: TObjectData; var TempView_no : integer; Xpos,Ypos:Integer; const Frame: integer; const Alg : integer); overload;
 var
@@ -1566,9 +1325,8 @@ begin
   ClearBank(Start);
 end;
 
-
 //---------------------------------------------
-// Add Dirt - On frame
+// Add Dirty - On frame
 //---------------------------------------------
 procedure Dirty(var SHP: TSHP; var Palette: TPalette; Xpos,Ypos:Integer; const Frame: integer; const Alg : integer); overload;
 var
@@ -1637,7 +1395,6 @@ begin
    ClearColourList(List,Last);
    ClearBank(Start);
 end;
-
 
 //---------------------------------------------
 // Add Snow - Preview
@@ -1712,7 +1469,6 @@ begin
    ClearBank(Start);
 end;
 
-
 //---------------------------------------------
 // Add Snow - On frame
 //---------------------------------------------
@@ -1784,114 +1540,90 @@ begin
    ClearBank(Start);
 end;
 
-
 //---------------------------------------------
-// Get Opposite Color
+// Draw Brush - Preview
 //---------------------------------------------
-function OpositeColour(color : TColor) : tcolor;
+// Note: BrushToolDarkenLighten Code Taken From Voxel Section Editor and adapted to this program
+procedure BrushTool(var _SHP: TSHP; var _TempView: TObjectData; var _TempView_no: integer; _Xc,_Yc,_BrushMode,_Colour: Integer);
 var
-   r,g,b : byte;
-begin
-   r := 255 - GetRValue(color);
-   g := 255 - GetGValue(color);
-   b := 255 - GetBValue(color);
-   Result := RGB(r,g,b);
-end;
-
-
-//---------------------------------------------
-// Draw brush - Preview
-//---------------------------------------------
-procedure BrushTool(var SHP: TSHP; var TempView: TObjectData; var tempViewLength: integer; Xc, Yc, BrushMode, Colour: TColor);
-var
-  Shape: Array[-5..5,-5..5] of 0..1;
-  i,j,r1,r2: Integer;
+   Shape: Array[-5..5,-5..5] of 0..1;
+   i,j,r1,r2: Integer;
 begin
    Randomize;
-
    for i := -5 to 5 do
       for j := -5 to 5 do
          Shape[i, j] := 0;
 
    Shape[0, 0] := 1;
-
-   // Initialize Brush
-   if BrushMode >= 1 then 
+   if _BrushMode >= 1 then
    begin
-      Shape[0,1] := 1; Shape[0,-1] := 1; Shape[1,0] := 1; Shape[-1,0] := 1;
+      Shape[0, 1] := 1;
+      Shape[0, -1] := 1;
+      Shape[1, 0] := 1;
+      Shape[-1, 0] := 1;
+   end;
+   if _BrushMode >= 2 then
+   begin
+      Shape[1, 1] := 1;
+      Shape[1, -1] := 1;
+      Shape[-1, -1] := 1;
+      Shape[-1, 1] := 1;
+   end;
+   if _BrushMode >= 3 then
+   begin
+      Shape[0, 2] := 1;
+      Shape[0, -2] := 1;
+      Shape[2, 0] := 1;
+      Shape[-2, 0] := 1;
    end;
 
-   if BrushMode >= 2 then begin
-      Shape[1,1] := 1; Shape[1,-1] := 1; Shape[-1,-1] := 1; Shape[-1,1] := 1;
-   end;
-
-   if BrushMode >= 3 then begin
-      Shape[0,2] := 1; Shape[0,-2] := 1; Shape[2,0] := 1; Shape[-2,0] := 1;
-   end;
-
-   if BrushMode = 4 then begin
+   if _BrushMode =4 then
+   begin
       for i := -5 to 5 do
          for j := -5 to 5 do
-            Shape[i,j] := 0;
+            Shape[i, j] := 0;
 
-      for i := 1 to 4 do begin
-         r1 := random(7) - 3; 
+      for i := 1 to 4 do
+      begin
+         r1 := random(7) - 3;
          r2 := random(7) - 3;
-         Shape[r1,r2] := 1;
+         Shape[r1, r2] := 1;
       end;
    end;
-
-   for i := -5 to 5 do begin
-      for j := -5 to 5 do begin
-         if Shape[i, j] = 1 then begin
-
-            inc(tempViewLength);
-            SetLength(TempView, tempViewLength);
-
-            TempView[tempViewLength - 1].Colour := Colour;
-            TempView[tempViewLength - 1].X := Max(Min(Xc + i, SHP.Header.Width - 1),0);
-            TempView[tempViewLength - 1].Y := Max(Min(Yc + j, SHP.Header.Height - 1),0);
+   //Brush completed, now actually use it!
+   //for every pixel of the brush, check if we need to draw it (Shape),
+   for i := -5 to 5 do
+   begin
+      for j := -5 to 5 do
+      begin
+         if Shape[i, j] = 1 then
+         begin
+            Add2DPointToTempViewUnsafe(_TempView, _TempView_No, Max(Min(_Xc + i, _SHP.Header.Width - 1), 0), Max(Min(_Yc + j, _SHP.Header.Height - 1), 0));
+         end;
       end;
-    end;
-  end;
+   end;
 end;
 
-
 //---------------------------------------------
-// Is coordinate in image
+// Draw Rectangle Dotted - Preview
 //---------------------------------------------
-function InImageBounds(x, y : integer; const SHP:TSHP) : boolean;
-begin
-   result := false; 
-
-   if (x >= 0) and (y >= 0) and (x < SHP.Header.Width) and (y < SHP.Header.Height) then
-      result := true;
-end;
-
-
-//---------------------------------------------
-// Draw Dotted Border (rectangle) - Preview 
-//---------------------------------------------
-procedure Rectangle_dotted(const SHP: TSHP; var TempView: TObjectData; var TempView_no:integer; const SHPPalette:TPalette; Frame: Word; Xpos,Ypos,Xpos2,Ypos2:Integer);
+procedure Rectangle_dotted(const _SHP: TSHP; var _TempView: TObjectData; var _TempView_no:integer; const _SHPPalette:TPalette; _Frame: Word; _Xpos, _Ypos, _Xpos2, _Ypos2:Integer);
 var
-   x,y,c: Integer;
+   x, y, c: Integer;
 begin
-   tempview_no := 0;
-   setlength(tempview,0);
-   c := 0;
+   // Reset Tempview
+   _TempView_No := 0;
+   SetLength(_TempView,0);
 
+   // Resets counter
+   c := 0;
    // write top line
-   for x := Max(Min(Xpos,Xpos2),0) to Min(SHP.Header.Width-1,Max(Xpos,Xpos2)) do
+   for x := Max(Min(_XPos, _XPos2), 0) to Min(_SHP.Header.Width - 1, Max(_XPos, _XPos2)) do
    begin
       inc(c);
-      if (c <4) and (InImageBounds(x,Min(Ypos,Ypos2),SHP)) then
+      if (c  < 4) and (PointOK(_SHP, x, Min(_YPos, _YPos2))) then
       begin
-         tempview_no := tempview_no +1;
-         setlength(tempview,tempview_no +1);
-         tempview[tempview_no].X := x;
-         tempview[tempview_no].Y := Min(Ypos,Ypos2);
-         tempview[tempview_no].colour_used := true;
-         tempview[tempview_no].colour := OpositeColour(SHPPalette[SHP.Data[Frame].FrameImage[x,Min(Ypos,Ypos2)]]);
+         AddAnyColourToTempViewUnsafe(_TempView, _TempView_No, x, Min(_YPos, _YPos2), OpositeColour(_SHPPalette[_SHP.Data[_Frame].FrameImage[x,Min(_YPos, _YPos2)]]));
       end
       else
          c := 0;
@@ -1899,17 +1631,12 @@ begin
 
    c := 0;
    // write bottom line
-   for x := Max(Min(Xpos,Xpos2),0) to Min(SHP.Header.Width-1,Max(Xpos,Xpos2)) do
+   for x := Max(Min(_XPos, _XPos2), 0) to Min(_SHP.Header.Width - 1, Max(_XPos, _XPos2)) do
    begin
       inc(c);
-      if (c <4) and (InImageBounds(x,Max(Ypos,Ypos2),SHP)) then
+      if (c < 4) and (PointOK(_SHP, x, Max(_YPos, _YPos2))) then
       begin
-         tempview_no := tempview_no +1;
-         setlength(tempview,tempview_no +1);
-         tempview[tempview_no].X := x;
-         tempview[tempview_no].Y := Max(Ypos,Ypos2);
-         tempview[tempview_no].colour_used := true;
-         tempview[tempview_no].colour := OpositeColour(SHPPalette[SHP.Data[Frame].FrameImage[x,Max(Ypos,Ypos2)]]);
+         AddAnyColourToTempViewUnsafe(_TempView, _TempView_No, x, Max(_YPos, _YPos2), OpositeColour(_SHPPalette[_SHP.Data[_Frame].FrameImage[x,Max(_YPos, _YPos2)]]));
       end
       else
          c := 0;
@@ -1917,17 +1644,12 @@ begin
 
    c := 0;
    // write left line
-   for y := Max(Min(Ypos,Ypos2),0) to Min(SHP.Header.Height-1,Max(Ypos,Ypos2)) do
+   for y := Max(Min(_YPos, _YPos2), 0) to Min(_SHP.Header.Height - 1, Max(_YPos, _YPos2)) do
    begin
       inc(c);
-      if (c <4) and (InImageBounds(Min(Xpos,Xpos2),y,SHP)) then
+      if (c < 4) and (PointOK(_SHP, Min(_XPos, _XPos2), y)) then
       begin
-         tempview_no := tempview_no +1;
-         setlength(tempview,tempview_no +1);
-         tempview[tempview_no].X := Min(Xpos,Xpos2);
-         tempview[tempview_no].Y := y;
-         tempview[tempview_no].colour_used := true;
-         tempview[tempview_no].colour := OpositeColour(SHPPalette[SHP.Data[Frame].FrameImage[Min(Xpos,Xpos2),y]]);
+         AddAnyColourToTempViewUnsafe(_TempView, _TempView_No, Min(_XPos, _XPos2), y, OpositeColour(_SHPPalette[_SHP.Data[_Frame].FrameImage[Min(_XPos, _XPos2), y]]));
       end
       else
          c := 0;
@@ -1935,35 +1657,172 @@ begin
 
    c := 0;
    // write right line
-   for y := Max(Min(Ypos,Ypos2),0) to Min(SHP.Header.Height-1,Max(Ypos,Ypos2)) do
+   for y := Max(Min(_YPos, _YPos2), 0) to Min(_SHP.Header.Height - 1, Max(_YPos, _YPos2)) do
    begin
       inc(c);
-      if (c < 4) and (InImageBounds(Max(Xpos,Xpos2),y,SHP)) then
+      if (c < 4) and (PointOK(_SHP, Max(_XPos, _XPos2), y)) then
       begin
-         tempview_no := tempview_no +1;
-         setlength(tempview,tempview_no +1);
-         tempview[tempview_no].X := Max(Xpos,Xpos2);
-         tempview[tempview_no].Y := y;
-         tempview[tempview_no].colour_used := true;
-         tempview[tempview_no].colour := OpositeColour(SHPPalette[SHP.Data[Frame].FrameImage[Max(Xpos,Xpos2),y]]);
+         AddAnyColourToTempViewUnsafe(_TempView, _TempView_No, Max(_XPos, _XPos2), y, OpositeColour(_SHPPalette[_SHP.Data[_Frame].FrameImage[Max(_XPos, _XPos2), y]]));
       end
       else
          c := 0;
    end;
 end;
 
+//---------------------------------------------
+// Draw Brush for Darken Lighten - Preview
+//---------------------------------------------
+// Note: BrushToolDarkenLighten Code Taken From Voxel Section Editor and adapted to this program
+procedure BrushToolDarkenLighten(var _SHP:TSHP; var _TempView: TObjectData; var _TempView_no: integer; _Frame: Word; _Xc, _Yc: Integer; _BrushMode: Integer); overload;
+var
+   Shape: Array[-5..5, -5..5] of 0..1;
+   i, j, r1, r2: Integer;
+   t : byte;
+begin
+   Randomize;
+   for i := -5 to 5 do
+      for j := -5 to 5 do
+         Shape[i, j] := 0;
+
+   Shape[0, 0] := 1;
+   if _BrushMode >= 1 then
+   begin
+      Shape[0, 1] := 1;
+      Shape[0, -1] := 1;
+      Shape[1, 0] := 1;
+      Shape[-1, 0] := 1;
+   end;
+   if _BrushMode >= 2 then
+   begin
+      Shape[1, 1] := 1;
+      Shape[1, -1] := 1;
+      Shape[-1, -1] := 1;
+      Shape[-1, 1] := 1;
+   end;
+   if _BrushMode >= 3 then
+   begin
+      Shape[0, 2] := 1;
+      Shape[0, -2] := 1;
+      Shape[2, 0] := 1;
+      Shape[-2, 0] := 1;
+   end;
+   if _BrushMode = 4 then
+   begin
+      for i := -5 to 5 do
+         for j := -5 to 5 do
+            Shape[i, j] := 0;
+
+      for i := 1 to 4 do
+      begin
+         r1 := random(7) - 3;
+         r2 := random(7) - 3;
+         Shape[r1, r2] := 1;
+      end;
+   end;
+    //Brush completed, now actually use it!
+   //for every pixel of the brush, check if we need to draw it (Shape),
+   for i := -5 to 5 do
+   begin
+      for j := -5 to 5 do
+      begin
+         if Shape[i, j] = 1 then
+         begin
+            t := _SHP.Data[_Frame].FrameImage[Max(Min(_Xc + i, _SHP.Header.Width - 1), 0), Max(Min(_Yc + j, _SHP.Header.Height - 1), 0)];
+            AddAnyColourToTempViewUnsafe(_TempView, _TempView_No, Max(Min(_Xc + i, _SHP.Header.Width - 1), 0), Max(Min(_Yc + j, _SHP.Header.Height - 1), 0), t);
+            _SHP.Data[_Frame].FrameImage[Max(Min(_Xc + i, _SHP.Header.Width - 1), 0), Max(Min(_Yc + j, _SHP.Header.Height - 1), 0)] := darkenlightenv(FrmMain.DarkenLighten_B, t, FrmMain.DarkenLighten_N);
+         end;
+      end;
+   end;
+end;
 
 //---------------------------------------------
-// DarkenLight Env ???
+// Draw Brush for Darken Lighten - On frame
 //---------------------------------------------
-function darkenlightenv(Darken:boolean; Current_Value,Value : byte) : byte;
-var 
+procedure BrushToolDarkenLighten(var _SHP:TSHP; _Frame: Word; _Xc,_Yc: Integer; _BrushMode: Integer); overload;
+var
+  Shape: Array[-5..5, -5..5] of 0..1;
+  i, j, r1, r2: Integer;
+  t : byte;
+begin
+   Randomize;
+   for i := -5 to 5 do
+      for j := -5 to 5 do
+         Shape[i, j] := 0;
+
+   Shape[0, 0] := 1;
+   if _BrushMode >= 1 then
+   begin
+      Shape[0, 1] := 1;
+      Shape[0, -1] := 1;
+      Shape[1, 0] := 1;
+      Shape[-1, 0] := 1;
+   end;
+   if _BrushMode >= 2 then
+   begin
+      Shape[1, 1] := 1;
+      Shape[1, -1] := 1;
+      Shape[-1, -1] := 1;
+      Shape[-1, 1] := 1;
+   end;
+   if _BrushMode >= 3 then
+   begin
+      Shape[0, 2] := 1;
+      Shape[0, -2] := 1;
+      Shape[2, 0] := 1;
+      Shape[-2, 0] := 1;
+   end;
+   if _BrushMode = 4 then
+   begin
+      for i := -5 to 5 do
+         for j := -5 to 5 do
+            Shape[i, j] := 0;
+
+      for i := 1 to 4 do
+      begin
+         r1 := random(7) - 3;
+         r2 := random(7) - 3;
+         Shape[r1, r2] := 1;
+      end;
+   end;
+    //Brush completed, now actually use it!
+   //for every pixel of the brush, check if we need to draw it (Shape),
+   for i := -5 to 5 do
+   begin
+      for j := -5 to 5 do
+      begin
+         if Shape[i, j] = 1 then
+         begin
+            t := _SHP.Data[_Frame].FrameImage[Max(Min(_Xc + i, _SHP.Header.Width- 1 ), 0), Max(Min(_Yc + j, _SHP.Header.Height - 1), 0)];
+            _SHP.Data[_Frame].FrameImage[Max(Min(_Xc + i, _SHP.Header.Width - 1), 0),Max(Min(_Yc + j, _SHP.Header.Height - 1), 0)] := darkenlightenv(FrmMain.DarkenLighten_B, t, FrmMain.DarkenLighten_N);
+         end;
+      end;
+   end;
+end;
+
+//---------------------------------------------
+// Get Opposite Color
+//---------------------------------------------
+function OpositeColour(_Color : TColor) : tcolor;
+var
+   r,g,b : byte;
+begin
+   r := 255 - GetRValue(_Color);
+   g := 255 - GetGValue(_Color);
+   b := 255 - GetBValue(_Color);
+   Result := RGB(r,g,b);
+end;
+
+//---------------------------------------------
+// Get Dark'en/Light'en value.
+//---------------------------------------------
+function DarkenLightenV(_Darken:boolean; _Current_Value, _Value : byte) : byte;
+var
    temp : word;
 begin
-   if darken then
-      temp := Current_Value - Value
+   if _Darken then
+      temp := _Current_Value - _Value
    else
-      temp := Current_Value + Value;
+      temp := _Current_Value + _Value;
 
    if temp < 1 then
       temp := temp + 255;
@@ -1976,119 +1835,155 @@ end;
 
 
 //---------------------------------------------
-// Darken/Lighten - Preview
+// Add 1 Coordinate - Preview
 //---------------------------------------------
-procedure BrushToolDarkenLighten(var SHP:TSHP; var TempView: TObjectData; var TempView_no: integer; Frame: Word; Xc,Yc: Integer; BrushMode: Integer); overload;
-var
-   Shape: Array[-5..5,-5..5] of 0..1;
-   i,j,r1,r2: Integer;
-   t : byte;
+procedure Add2DPointToTempview(const _SHP:TSHP; var _Tempview: TObjectData; var _TempView_no : integer; _Frame,_XPos,_YPos:Integer);
 begin
-   Randomize;
-   for i:=-5 to 5 do
-      for j:=-5 to 5 do
-         Shape[i,j]:=0;
-   Shape[0,0]:=1;
-   if BrushMode>=1 then
-   begin
-      Shape[0,1]:=1; Shape[0,-1]:=1; Shape[1,0]:=1; Shape[-1,0]:=1;
-   end;
-   if BrushMode>=2 then
-   begin
-      Shape[1,1]:=1; Shape[1,-1]:=1; Shape[-1,-1]:=1; Shape[-1,1]:=1;
-   end;
-   if BrushMode>=3 then
-   begin
-      Shape[0,2]:=1; Shape[0,-2]:=1; Shape[2,0]:=1; Shape[-2,0]:=1;
-   end;
-
-   if BrushMode =4 then
-   begin
-      for i:=-5 to 5 do
-         for j:=-5 to 5 do
-            Shape[i,j]:=0;
-
-      for i:=1 to 4 do
+   if (_YPos < _SHP.Header.Height) and (_YPos >= 0) then
+      if (_XPos < _SHP.Header.Width) and (_XPos >= 0) then
       begin
-         r1 := random(7)-3; r2 := random(7)-3;
-         Shape[r1,r2]:=1;
+         SetLength(_Tempview, _Tempview_No + 1);
+         _Tempview[_Tempview_no].X := _XPos;
+         _TempView[_Tempview_no].Y := _YPos;
+         inc(_Tempview_no);
       end;
-   end;
-    //Brush completed, now actually use it!
-   //for every pixel of the brush, check if we need to draw it (Shape),
-   for i:=-5 to 5 do
-   begin
-      for j:=-5 to 5 do
-      begin
-         if Shape[i,j]=1 then
-         begin
-            inc(TempView_no);
-            SetLength(TempView,TempView_no+1);
-            TempView[TempView_no].X := Max(Min(Xc+i,SHP.Header.Width-1),0);
-            TempView[TempView_no].Y := Max(Min(Yc+j,SHP.Header.Height-1),0);
-            t := SHP.Data[Frame].FrameImage[Max(Min(Xc+i,SHP.Header.Width-1),0),Max(Min(Yc+j,SHP.Header.Height-1),0)];
-            TempView[TempView_no].colour := t;
-            TempView[tempview_no].colour_used := true;
-            SHP.Data[Frame].FrameImage[Max(Min(Xc+i,SHP.Header.Width-1),0),Max(Min(Yc+j,SHP.Header.Height-1),0)] := darkenlightenv(FrmMain.DarkenLighten_B,t,FrmMain.DarkenLighten_N);
-         end;
-      end;
-   end;
 end;
 
-
 //---------------------------------------------
-// Darken/Lighten - On frame
+// Add 1 Coordinate (Unsafe Mode) - Preview
 //---------------------------------------------
-procedure BrushToolDarkenLighten(var SHP:TSHP; Frame: Word; Xc,Yc: Integer; BrushMode: Integer); overload;
-var
-  Shape: Array[-5..5,-5..5] of 0..1;
-  i,j,r1,r2: Integer;
-  t : byte;
+procedure Add2DPointToTempviewUnsafe(var _Tempview: TObjectData; var _TempView_no : integer; _XPos,_YPos:Integer);
 begin
-   Randomize;
-   for i:=-5 to 5 do
-      for j:=-5 to 5 do
-         Shape[i,j]:=0;
-   Shape[0,0]:=1;
-   if BrushMode>=1 then
-   begin
-      Shape[0,1]:=1; Shape[0,-1]:=1; Shape[1,0]:=1; Shape[-1,0]:=1;
-   end;
-   if BrushMode>=2 then
-   begin
-      Shape[1,1]:=1; Shape[1,-1]:=1; Shape[-1,-1]:=1; Shape[-1,1]:=1;
-   end;
-   if BrushMode>=3 then
-   begin
-      Shape[0,2]:=1; Shape[0,-2]:=1; Shape[2,0]:=1; Shape[-2,0]:=1;
-   end;
-
-   if BrushMode =4 then
-   begin
-      for i:=-5 to 5 do
-         for j:=-5 to 5 do
-            Shape[i,j]:=0;
-
-      for i:=1 to 4 do
-      begin
-         r1 := random(7)-3; r2 := random(7)-3;
-         Shape[r1,r2]:=1;
-      end;
-   end;
-    //Brush completed, now actually use it!
-   //for every pixel of the brush, check if we need to draw it (Shape),
-   for i:=-5 to 5 do
-   begin
-      for j:=-5 to 5 do
-      begin
-         if Shape[i,j]=1 then
-         begin
-            t := SHP.Data[Frame].FrameImage[Max(Min(Xc+i,SHP.Header.Width-1),0),Max(Min(Yc+j,SHP.Header.Height-1),0)];
-            SHP.Data[Frame].FrameImage[Max(Min(Xc+i,SHP.Header.Width-1),0),Max(Min(Yc+j,SHP.Header.Height-1),0)] := darkenlightenv(FrmMain.DarkenLighten_B,t,FrmMain.DarkenLighten_N);
-         end;
-      end;
-   end;
+   SetLength(_Tempview, _Tempview_No + 1);
+   _Tempview[_Tempview_no].X := _XPos;
+   _TempView[_Tempview_no].Y := _YPos;
+   inc(_Tempview_no);
 end;
 
+//---------------------------------------------
+// Add 2 Coordinates (Unsafe Mode) - Preview
+//---------------------------------------------
+procedure AddTwo2DPointsToTempviewUnsafe(var _Tempview: TObjectData; var _TempView_no : integer; _XPos1,_YPos1,_XPos2,_YPos2:Integer);
+begin
+   SetLength(_Tempview, _Tempview_No + 2);
+   _Tempview[_Tempview_no].X := _XPos1;
+   _TempView[_Tempview_no].Y := _YPos1;
+   inc(_Tempview_no);
+   _Tempview[_Tempview_no].X := _XPos2;
+   _TempView[_Tempview_no].Y := _YPos2;
+   inc(_Tempview_no);
+end;
+
+//---------------------------------------------
+// Add 4 Coordinates (Unsafe Mode) - Preview
+//---------------------------------------------
+procedure AddFour2DPointsToTempviewUnsafe(var _Tempview: TObjectData; var _TempView_no : integer; _XPos1,_YPos1,_XPos2,_YPos2,_XPos3,_YPos3,_XPos4,_YPos4:Integer);
+begin
+   SetLength(_Tempview, _Tempview_No + 4);
+   _Tempview[_Tempview_no].X := _XPos1;
+   _TempView[_Tempview_no].Y := _YPos1;
+   inc(_Tempview_no);
+   _Tempview[_Tempview_no].X := _XPos2;
+   _TempView[_Tempview_no].Y := _YPos2;
+   inc(_Tempview_no);
+   _Tempview[_Tempview_no].X := _XPos3;
+   _TempView[_Tempview_no].Y := _YPos3;
+   inc(_Tempview_no);
+   _Tempview[_Tempview_no].X := _XPos4;
+   _TempView[_Tempview_no].Y := _YPos4;
+   inc(_Tempview_no);
+end;
+
+//---------------------------------------------
+// Add Color - Preview
+//---------------------------------------------
+procedure AddColourToTempview(const _SHP:TSHP; var _Palette: TPalette; var _Tempview: TObjectData; var _TempView_no : integer; _Frame,_Xpos,_Ypos,_Alg:Integer; var _List,_Last:listed_colour; _Bias,_Division:byte);
+begin
+   if (_YPos < _SHP.Header.Height) and (_YPos >= 0) then
+      if (_XPos < _SHP.Header.Width) and (_XPos >= 0) then
+         if (_SHP.Data[_Frame].FrameImage[_XPos, _YPos] <> 0) then
+         begin
+            SetLength(_TempView, _TempView_No + 1);
+            _TempView[_TempView_No].X := _XPos;
+            _TempView[_TempView_No].Y := _YPos;
+            _TempView[_TempView_No].colour := _Palette[LoadPixel(_List, _Last, _Alg, RGB(GetRValue(_Palette[_SHP.Data[_Frame].FrameImage[_XPos, _YPos]]) - (_Bias * (GetRValue(_Palette[_SHP.Data[_Frame].FrameImage[_XPos, _YPos]]) div _Division)), GetGValue(_Palette[_SHP.Data[_Frame].FrameImage[_XPos, _YPos]]) - (_Bias * (GetGValue(_Palette[_SHP.Data[_Frame].FrameImage[_XPos, _YPos]]) div _Division)), GetBValue(_Palette[_SHP.Data[_Frame].FrameImage[_XPos, _YPos]]) - (_Bias * (GetBValue(_Palette[_SHP.Data[_Frame].FrameImage[_XPos, _YPos]]) div _Division))))];
+            _TempView[_TempView_No].colour_used := true;
+            inc(_TempView_No);
+         end;
+end;
+
+//---------------------------------------------
+// Add any Color - Preview
+//---------------------------------------------
+procedure AddAnyColourToTempview(const _SHP:TSHP; var _Tempview: TObjectData; var _TempView_no : integer; _Xpos,_Ypos: Integer; _Colour: TColor);
+begin
+   if (_YPos < _SHP.Header.Height) and (_YPos >= 0) then
+      if (_XPos < _SHP.Header.Width) and (_XPos >= 0) then
+      begin
+         SetLength(_TempView, _TempView_No + 1);
+         _TempView[_TempView_No].X := _XPos;
+         _TempView[_TempView_No].Y := _YPos;
+         _TempView[_TempView_No].colour := _Colour;
+         _TempView[_TempView_No].colour_used := true;
+         inc(_TempView_No);
+      end;
+end;
+
+//---------------------------------------------
+// Add any Color (Unsafe Mode) - Preview
+//---------------------------------------------
+procedure AddAnyColourToTempviewUnsafe(var _Tempview: TObjectData; var _TempView_no : integer; _Xpos,_Ypos: Integer; _Colour: TColor);
+begin
+   SetLength(_TempView, _TempView_No + 1);
+   _TempView[_TempView_No].X := _XPos;
+   _TempView[_TempView_No].Y := _YPos;
+   _TempView[_TempView_No].colour := _Colour;
+   _TempView[_TempView_No].colour_used := true;
+   inc(_TempView_No);
+end;
+
+//---------------------------------------------
+// Add Color - On frame
+//---------------------------------------------
+procedure AddColourToSHP(var _SHP:TSHP; var _Palette: TPalette; _Frame,_Xpos,_Ypos,_Alg:Integer; var _List,_Last:listed_colour; _Bias,_Division:byte);
+begin
+   if (_YPos < _SHP.Header.Height) and (_YPos >= 0) then
+      if (_XPos < _SHP.Header.Width) and (_XPos >= 0) then
+         if (_SHP.Data[_Frame].FrameImage[_XPos, _YPos] <> 0) then
+         begin
+            _SHP.Data[_Frame].FrameImage[_XPos, _YPos] := LoadPixel(_List, _Last, _Alg, RGB(GetRValue(_Palette[_SHP.Data[_Frame].FrameImage[_XPos, _YPos]]) - (_Bias * (GetRValue(_Palette[_SHP.Data[_Frame].FrameImage[_XPos, _YPos]]) div _Division)), GetGValue(_Palette[_SHP.Data[_Frame].FrameImage[_XPos, _YPos]]) - (_Bias * (GetGValue(_Palette[_SHP.Data[_Frame].FrameImage[_XPos, _YPos]]) div _Division)),GetBValue(_Palette[_SHP.Data[_Frame].FrameImage[_XPos, _YPos]]) - (_Bias * (GetBValue(_Palette[_SHP.Data[_Frame].FrameImage[_XPos, _YPos]]) div _Division))));
+         end;
+end;
+
+//---------------------------------------------
+// Add Snow Color - Preview
+//---------------------------------------------
+procedure AddSnowColourToTempview(const _SHP:TSHP; var _Palette: TPalette; var _TempView: TObjectData; var _TempView_no : integer; _Frame,_Xpos,_Ypos,_Alg:Integer; var _List,_Last:listed_colour; _Bias,_Division:byte);
+begin
+   if (_YPos < _SHP.Header.Height) and (_YPos >= 0) then
+      if (_XPos < _SHP.Header.Width) and (_XPos >= 0) then
+         if (_SHP.Data[_Frame].FrameImage[_XPos, _YPos] <> 0) then
+         begin
+            SetLength(_TempView, _TempView_No + 1);
+            _TempView[_TempView_No].X := _XPos;
+            _TempView[_TempView_No].Y := _YPos;
+            _TempView[_TempView_No].colour := _Palette[LoadPixel(_List, _Last, _Alg, RGB(GetRValue(_Palette[_SHP.Data[_Frame].FrameImage[_XPos, _YPos]]) + (_Bias * ((255 - GetRValue(_Palette[_SHP.Data[_Frame].FrameImage[_XPos, _YPos]])) div _Division)), GetGValue(_Palette[_SHP.Data[_Frame].FrameImage[_XPos, _YPos]]) + (_Bias * ((255 - GetGValue(_Palette[_SHP.Data[_Frame].FrameImage[_XPos, _YPos]])) div _Division)), GetBValue(_Palette[_SHP.Data[_Frame].FrameImage[_XPos, _YPos]]) + (_Bias * ((255 - GetBValue(_Palette[_SHP.Data[_Frame].FrameImage[_XPos, _YPos]])) div _Division))))];
+            _TempView[_TempView_No].colour_used := true;
+            inc(_TempView_No);
+         end;
+end;
+
+//---------------------------------------------
+// Add Snow Color - On frame
+//---------------------------------------------
+procedure AddSnowColourToSHP(var _SHP:TSHP; const _Palette: TPalette; _Frame,_Xpos,_Ypos,_Alg:Integer; var _List,_Last:listed_colour; _Bias,_Division:byte);
+begin
+   if (_YPos < _SHP.Header.Height) and (_YPos >= 0) then
+      if (_XPos < _SHP.Header.Width) and (_XPos >= 0) then
+         if (_SHP.Data[_Frame].FrameImage[_XPos, _YPos] <> 0) then
+         begin
+            _SHP.Data[_Frame].FrameImage[_XPos, _YPos] := LoadPixel(_List, _Last, _Alg, RGB(GetRValue(_Palette[_SHP.Data[_Frame].FrameImage[_XPos, _YPos]]) + (_Bias * ((255 - GetRValue(_Palette[_SHP.Data[_Frame].FrameImage[_XPos, _YPos]])) div _Division)), GetGValue(_Palette[_SHP.Data[_Frame].FrameImage[_XPos, _YPos]]) + (_Bias * ((255 - GetGValue(_Palette[_SHP.Data[_Frame].FrameImage[_XPos, _YPos]])) div _Division)), GetBValue(_Palette[_SHP.Data[_Frame].FrameImage[_XPos, _YPos]]) + (_Bias * ((255 - GetBValue(_Palette[_SHP.Data[_Frame].FrameImage[_XPos, _YPos]])) div _Division))));
+         end;
+end;
 
 end.

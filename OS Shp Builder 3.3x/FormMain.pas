@@ -19,8 +19,8 @@ uses
 Const
    SHP_BUILDER_VER = '3.38';
 {$IFDEF _BETA}
-   SHP_BUILDER_BETA_VER = '1 (z6.4)';
-   SHP_BUILDER_INTERNAL_VERSION = '3.37.99.001.z6.4';
+   SHP_BUILDER_BETA_VER = '2 (z6.6)';
+   SHP_BUILDER_INTERNAL_VERSION = '3.37.99.002.z6.6';
 {$ENDIF}
    SHP_BUILDER_TITLE = ' Open Source SHP Builder';
    SHP_BUILDER_BY = 'Banshee & Stucuk';
