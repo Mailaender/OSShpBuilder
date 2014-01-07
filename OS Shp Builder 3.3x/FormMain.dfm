@@ -39,7 +39,6 @@ object SHPBuilderFrmMain: TSHPBuilderFrmMain
       item
         Width = 50
       end>
-    ExplicitTop = 805
   end
   object LeftPanel: TPanel
     Left = 0
@@ -49,11 +48,10 @@ object SHPBuilderFrmMain: TSHPBuilderFrmMain
     Align = alLeft
     BevelOuter = bvNone
     TabOrder = 1
-    ExplicitHeight = 778
     object lblPalette: TLabel
       AlignWithMargins = True
       Left = 3
-      Top = 247
+      Top = 300
       Width = 154
       Height = 13
       Align = alTop
@@ -1075,12 +1073,13 @@ object SHPBuilderFrmMain: TSHPBuilderFrmMain
     end
     object pnlPalette: TPanel
       Left = 0
-      Top = 525
+      Top = 578
       Width = 160
-      Height = 43
+      Height = 20
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 2
+      ExplicitTop = 525
       object lblActiveColour: TLabel
         Left = 22
         Top = 2
@@ -1151,12 +1150,13 @@ object SHPBuilderFrmMain: TSHPBuilderFrmMain
     end
     object PalettePanel: TPanel
       Left = 0
-      Top = 263
+      Top = 316
       Width = 160
       Height = 262
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 4
+      ExplicitTop = 263
       object cnvPalette: TPaintBox
         Left = 0
         Top = 0
@@ -1269,6 +1269,7 @@ object SHPBuilderFrmMain: TSHPBuilderFrmMain
       Color = clWindowFrame
       ParentBackground = False
       TabOrder = 9
+      ExplicitTop = 229
     end
     object pnlSeparator2: TPanel
       Left = 0
@@ -1280,7 +1281,41 @@ object SHPBuilderFrmMain: TSHPBuilderFrmMain
       Caption = '=========================='
       Color = clWindowFrame
       ParentBackground = False
+      TabOrder = 11
+    end
+    object Panel1: TPanel
+      Left = 0
+      Top = 285
+      Width = 160
+      Height = 12
+      Align = alTop
+      BevelOuter = bvNone
+      Caption = '=========================='
+      Color = clWindowFrame
+      ParentBackground = False
+      TabOrder = 12
+      ExplicitTop = 232
+    end
+    object pnlBackground: TPanel
+      Left = 0
+      Top = 244
+      Width = 160
+      Height = 41
+      Align = alTop
       TabOrder = 10
+      ExplicitLeft = 3
+      ExplicitTop = 238
+      object cbShowBackground: TCheckBox
+        Left = 16
+        Top = 12
+        Width = 112
+        Height = 17
+        BiDiMode = bdRightToLeft
+        Caption = 'Show Background'
+        ParentBiDiMode = False
+        TabOrder = 0
+        OnClick = cbShowBackgroundClick
+      end
     end
   end
   object panelToolBar: TPanel

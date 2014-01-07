@@ -113,7 +113,7 @@ type
    TOtherOptionsData = record
       AutoSelectSHPType: boolean;
       LastPalettePath: string;
-      BackgroundEnabled : boolean;
+      BackgroundColorEnabled : boolean;
       ApplySelOnFrameChanging : boolean;
    end;
 
@@ -498,6 +498,9 @@ type
       pnlSeparator4: TPanel;
       pnlSeparator2: TPanel;
     menuItemUninstall: TMenuItem;
+    cbShowBackground: TCheckBox;
+    Panel1: TPanel;
+    pnlBackground: TPanel;
       procedure UpdateOSSHPBuilder1Click(Sender: TObject);
       procedure AutoSelectSHPType1Click(Sender: TObject);
       procedure PreviewBrush1Click(Sender: TObject);
@@ -751,6 +754,7 @@ type
     procedure TbShowGridClick(Sender: TObject);
     procedure lblBackGroundColourDblClick(Sender: TObject);
     procedure menuItemUninstallClick(Sender: TObject);
+    procedure cbShowBackgroundClick(Sender: TObject);
    private
       { Private declarations }
       ColourSchemes : TColourSchemes;
@@ -819,7 +823,8 @@ type
       procedure RefreshGridUIComponents;
       procedure UpdateFrameUIComponents;
 
-      procedure SetBackgroundEnabled(enabled : boolean);
+      procedure SetBackgroundColorEnabled(enabled : boolean);
+      procedure SetShowBackground(value : boolean);
       procedure ResetTempView;
 
       procedure InitializePalettePreferences();
@@ -1220,8 +1225,8 @@ begin
       SetPalette(OtherOptionsData.LastPalettePath);
 
 
-   // Set BackgroundEnabled
-   ToogleBackgroundColourMenuItem.Checked := OtherOptionsData.BackgroundEnabled;
+   // Set Background Color Enabled
+   ToogleBackgroundColourMenuItem.Checked := OtherOptionsData.BackgroundColorEnabled;
 
    Reg := TRegistry.Create;
    Reg.RootKey := HKEY_LOCAL_MACHINE;
@@ -1365,7 +1370,7 @@ begin
       Blockwrite(F,PreviewBrush,sizeof(boolean));
       Blockwrite(F,OtherOptionsData.AutoSelectSHPType,sizeof(boolean));
       BlockWriteString(F, OtherOptionsData.LastPalettePath); 
-      Blockwrite(F,OtherOptionsData.BackgroundEnabled,sizeof(boolean));
+      Blockwrite(F,OtherOptionsData.BackgroundColorEnabled,sizeof(boolean));
       BlockWrite(F, OtherOptionsData.ApplySelOnFrameChanging, SizeOf(boolean));
       BlockWriteString(F, OpenPaletteDir); 
    except
@@ -1539,7 +1544,7 @@ begin
    PreviewBrush := true;
    OtherOptionsData.AutoSelectSHPType := true;
    OtherOptionsData.LastPalettePath := '';
-   OtherOptionsData.BackgroundEnabled := true;
+   OtherOptionsData.BackgroundColorEnabled := true;
    OtherOptionsData.ApplySelOnFrameChanging := false;
 end;
 
@@ -1569,7 +1574,7 @@ end;
 procedure TSHPBuilderFrmMain.LoadConfig7(var F: file);
 begin
    LoadConfig6(F);
-   BlockRead(F,OtherOptionsData.BackgroundEnabled,Sizeof(Boolean));
+   BlockRead(F,OtherOptionsData.BackgroundColorEnabled,Sizeof(Boolean));
 end;
 
 
@@ -1701,6 +1706,8 @@ begin
          StatusBar1.Panels[3].Text := '';
       end;
    end;
+
+   cbShowBackground.Enabled := isEditable;
 
    Save1.enabled := isEditable;
    SaveAs1.enabled := isEditable;
@@ -3409,20 +3416,30 @@ end;
 procedure TSHPBuilderFrmMain.ToogleBackgroundColourMenuItemClick(Sender: TObject);
 begin
    ToogleBackgroundColourMenuItem.Checked := not ToogleBackgroundColourMenuItem.Checked;
-   SetBackgroundEnabled(ToogleBackgroundColourMenuItem.Checked);
+   SetBackgroundColorEnabled(ToogleBackgroundColourMenuItem.Checked);
 end;
 
 
 //---------------------------------------------
 // Enable/disable SHP BackgroundColor
 //---------------------------------------------
-procedure TSHPBuilderFrmMain.SetBackgroundEnabled(enabled : boolean);
+procedure TSHPBuilderFrmMain.SetBackgroundColorEnabled(enabled : boolean);
 begin
    if (ActiveForm <> nil) then
-      ActiveForm^.SetBackgroundEnabled(enabled);
+      ActiveForm^.SetBackgroundColorEnabled(enabled);
 
-   OtherOptionsData.BackgroundEnabled := enabled;
+   OtherOptionsData.BackgroundColorEnabled := enabled;
    RefreshBackgroundUIComponents;
+end;
+
+
+//---------------------------------------------
+// Show/hide background
+//---------------------------------------------
+procedure TSHPBuilderFrmMain.SetShowBackground(value : boolean);
+begin
+   if (ActiveForm <> nil) then
+      ActiveForm^.SetShowBackground(value);
 end;
 
 
@@ -3485,29 +3502,33 @@ procedure TSHPBuilderFrmMain.RefreshBackgroundUIComponents;
 var
   Data : TSHPImageData;
   enabled : boolean;
+  cBackground :  TColor;
 begin
    enabled := false;
+   cBackground := clGray;
 
    if (ActiveForm <> nil) then
    begin
       Data := ActiveForm^.Data;
-      enabled := ActiveForm^.BackgroundEnabled;
+      enabled := ActiveForm^.BackgroundColorEnabled;
 
-      if ActiveForm^.BackgroundEnabled then
+      if ActiveForm^.BackgroundColorEnabled then
       begin
          lblBackGroundColour.Caption := IntToStr(ActiveForm^.BackGroundColour) + ' (0x' + IntToHex(ActiveForm^.BackGroundColour,3) + ')';
-         //pnlBackGroundColour.Color := Data^.SHPPalette[ActiveForm^.BackGroundColour];
+         cBackground := Data^.SHPPalette[ActiveForm^.BackGroundColour];
       end
       else      
       begin
          lblBackGroundColour.Caption := '< OFF >';
-         //pnlBackGroundColour.Color := Data^.Shadow_Match[ActiveForm^.BackGroundColour].Original;
+         cBackground := clGray;
       end;
+      cbShowBackground.Checked := ActiveForm^.ShowBackground;
    end;
    
-   pnlBackGroundColour.Color := Data^.SHPPalette[ActiveForm^.BackGroundColour];
+   pnlBackGroundColour.Color := cBackground;
+   pnlBackGroundColour.Enabled := enabled;
    ToogleBackgroundColourMenuItem.Checked := enabled;
-   //pnlBackGroundColour.Enabled := enabled;   
+
 end;
 
 
@@ -3829,15 +3850,32 @@ begin
    Cascade;
 end;
 
+
+//---------------------------------------------
+// Checkbox Show Background Click
+//---------------------------------------------
+procedure TSHPBuilderFrmMain.cbShowBackgroundClick(Sender: TObject);
+begin
+   SetShowBackground(cbShowBackground.Checked);
+end;
+
+
+//---------------------------------------------
+// Button Show Center Click
+//---------------------------------------------
 procedure TSHPBuilderFrmMain.ShowCenter1Click(Sender: TObject);
 begin
    TbShowCenterClick(Sender);
 end;
 
+
+//---------------------------------------------
+// Button Show Center Click
+//---------------------------------------------
 procedure TSHPBuilderFrmMain.TbShowCenterClick(Sender: TObject);
 begin
-   ActiveForm^.show_center := not ActiveForm^.show_center;
-   TbShowCenter.Down := ActiveForm^.show_center;
+   ActiveForm^.ShowCenter := not ActiveForm^.ShowCenter;
+   TbShowCenter.Down := ActiveForm^.ShowCenter;
 
    ActiveForm^.RefreshImage;
 end;

@@ -728,11 +728,11 @@ begin
    if Data = nil then exit;
 
    // This code avoids OutOfResources Errors on enourmous pictures:
-   Form.show_center := False;
+   Form.ShowCenter := False;
    FrmMain.TbShowCenter.Down := False;
 
    // BackgroundColour
-   FrmMain.SetBackgroundEnabled(FrmMain.OtherOptionsData.BackgroundEnabled);
+   FrmMain.SetBackgroundColorEnabled(FrmMain.OtherOptionsData.BackgroundColorEnabled);
    Form.SetBackGroundColour(0);
 
    // Status Bar Updates

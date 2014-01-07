@@ -121,10 +121,11 @@ type
       ShadowColour,
       BackGroundColour : byte;
 
-      BackgroundEnabled: boolean;
+      BackgroundColorEnabled: boolean;
       ShadowMode : boolean;
-      show_center : boolean;
+      ShowCenter : boolean;
       ShowGrid : boolean;
+      ShowBackground : boolean;
       C : Boolean;
       
       Zoom : byte;
@@ -153,7 +154,8 @@ type
 
       // Properties
       procedure SetFrameIndex(v : integer);
-      procedure SetBackgroundEnabled(Value: boolean);
+      procedure SetBackgroundColorEnabled(Value: boolean);
+      procedure SetShowBackground(value : boolean);
    end;
 
 implementation
@@ -546,17 +548,17 @@ begin
    if(Selection.Visible) then
    begin
       if (Selection.HasData) then
-         DrawSelectedArea(Selection, bmp)
+         DrawSelectionLayer(Selection, bmp)
       else
-         DrawSelectionLayer(Selection, bmp);
+         DrawSelectedArea(Selection, bmp);
    end;
 end;
 
 
 //---------------------------------------------
-// Draw Selection
+// Draw Selected Area (when user is selecting)
 //---------------------------------------------
-procedure TFrmSHPImage.DrawSelectionLayer(var s : TSelection; var bmp : TBitmap);
+procedure TFrmSHPImage.DrawSelectedArea(var s : TSelection; var bmp : TBitmap);
 var
    ShpContext : TSHPImageData;
    x, y, right, bottom: integer;
@@ -565,7 +567,6 @@ begin
    ShpContext := Data;
    right := s.X + s.Width - 1;
    bottom := s.Y + s.Height - 1;
-
 
    for y := s.Y to bottom do
    begin
@@ -580,9 +581,9 @@ end;
 
 
 //---------------------------------------------
-// Draw Selected Area
+// Draw Selection Layer (after a selection occured)
 //---------------------------------------------
-procedure TFrmSHPImage.DrawSelectedArea(var s : TSelection; var bmp : TBitmap);
+procedure TFrmSHPImage.DrawSelectionLayer(var s : TSelection; var bmp : TBitmap);
 var
    ShpContext : TSHPImageData;
    line : TScanline;
@@ -590,15 +591,21 @@ var
    xx, yy, 
    maxX, maxY : integer;
    color : TRGB32;
-   bgColor : TRGB32;
+   cBackground : TRGB32;
+   cTransparent : TRGB32;
 begin
    ShpContext := Data;
+
+   cTransparent.A := 0;
+   cTransparent.R := 0;
+   cTransparent.G := 0;
+   cTransparent.B := 0;
 
    for y := 0 to s.Height - 1 do begin
       yy := s.Y + y;
       if ( yy < 0) then continue;
       if ( yy >= ShpContext^.Shp.Header.Height ) then continue;
-      if ( yy < 0) or (yy >= bmp.Height) then ShowMessage( Format('DrawSelectedArea: Scanline: %d', [y]) );
+      //if ( yy < 0) or (yy >= bmp.Height) then ShowMessage( Format('DrawSelectedArea: Scanline: %d', [y]) );
       line := bmp.Scanline[yy];
       
       for x := 0 to s.Width - 1 do begin
@@ -606,11 +613,22 @@ begin
          if ( xx < 0) then continue;
          if ( xx >= ShpContext^.Shp.Header.Width ) then continue;
 
-         if (not BackgroundEnabled) and (s.Layer[x][y] = 0) and (ShpContext^.Shp.Data[FrameIndex].FrameImage[xx, yy] <> 0) then
+         {
+         if (BackgroundColorEnabled) and (s.Layer[x][y] = BackGroundColour) 
+            and (ShpContext^.Shp.Data[FrameIndex].FrameImage[xx, yy] = 0) then
             line[xx] := GetGrayscaleRGB32( ColorToRGB32( ShpContext^.ShpPalette[ShpContext^.Shp.Data[FrameIndex].FrameImage[xx, yy]]))
          else
             line[xx] := ColorToRGB32(OpositeColour( ShpContext^.SHPPalette[ s.Layer[x][y] ]  ));
-
+         }
+         if (BackgroundColorEnabled) and (s.Layer[x][y] = BackGroundColour) then
+         begin
+            if (ShpContext^.Shp.Data[FrameIndex].FrameImage[xx, yy] <> 0) then
+               line[xx] := GetGrayscaleRGB32( ColorToRGB32( ShpContext^.ShpPalette[ShpContext^.Shp.Data[FrameIndex].FrameImage[xx, yy]]))
+            else
+               line[xx] := ColorToRGB32(OpositeColour( ShpContext^.SHPPalette[ 0 ]  ));             
+         end 
+         else
+            line[xx] := ColorToRGB32(OpositeColour( ShpContext^.SHPPalette[ s.Layer[x][y] ]  ));
       end;
    end;
 end;
@@ -700,7 +718,7 @@ begin
    gridColor := GetOppositeRGB32( bgColor );
 
    // DRAW BACKGROUND
-   if BackgroundEnabled then 
+   if ShowBackground then 
       DrawFrameBackground(bmp, bgColor );
 
 
@@ -709,7 +727,7 @@ begin
    
 
    // DRAW CROSS
-   if show_center then
+   if ShowCenter then
       DrawCross(bmp, gridColor);
 
 
@@ -818,17 +836,26 @@ begin
    
    FrmMain.RefreshBackgroundUIComponents;
    FrmMain.cnvPalette.Repaint;
+   RefreshImage;
 end;
 
 
 //---------------------------------------------
 // Enable/disable background colour.
 //---------------------------------------------
-procedure TFrmSHPImage.SetBackgroundEnabled(Value: boolean);
-var
-   SHPData: TSHPImageData;
+procedure TFrmSHPImage.SetBackgroundColorEnabled(Value: boolean);
 begin
-   BackgroundEnabled := Value;
+   BackgroundColorEnabled := Value;
+   RefreshImage;
+end;
+
+
+//---------------------------------------------
+// Show/hide background
+//---------------------------------------------
+procedure TFrmSHPImage.SetShowBackground(value : boolean);
+begin
+   ShowBackground := Value;
    RefreshImage;
 end;
 
@@ -949,7 +976,8 @@ begin
       begin
          y := s.Y + j;
          if (y < 0) or (y >= ShpContext^.SHP.Header.Height) then continue;
-         if (not BackgroundEnabled) and (s.Layer[i, j] = BackGroundColour) then continue;
+         // DO NO COPY BACKGROUND
+         if (BackgroundColorEnabled) and (s.Layer[i, j] = BackGroundColour) then continue;
 
          ShpContext^.SHP.Data[FrameIndex].FrameImage[x, y] := s.Layer[i, j];
       end;
@@ -1113,7 +1141,7 @@ end;
 function TFrmSHPImage.GetWorkingColorIndex : byte;
 begin
    // Left Button or No Button
-   if (Click = 1) or (Click = 0) or (BackgroundEnabled) then
+   if (Click = 1) or (Click = 0) or (BackgroundColorEnabled) then
          Result := ActiveColour
    // Right Button
    else
@@ -1832,9 +1860,11 @@ begin
    // Refresh Background UI Components
    FrmMain.RefreshBackgroundUIComponents;
 
+   FrmMain.cbShowBackground.Checked := ShowBackground;
+
    // Update Undo
    FrmMain.UndoUpdate(FrmMain.ActiveData^.UndoList);
-   FrmMain.TbShowCenter.Down := self.show_center;
+   FrmMain.TbShowCenter.Down := self.ShowCenter;
 
    // Update Preview Button
    if FrmMain.ActiveData^.Preview = nil then
@@ -1917,6 +1947,8 @@ begin
    IsSelecting := false;
    Selection.Visible := true;
    Selection.IsFromClipboard := false;
+
+   ShowBackground := true;
 end;
 
 
