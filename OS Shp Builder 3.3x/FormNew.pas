@@ -31,6 +31,7 @@ type
       procedure CbxGameChange(Sender: TObject);
     procedure OnKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure FormKeyPress(Sender: TObject; var Key: Char);
    private
       { Private declarations }
    public
@@ -58,12 +59,32 @@ begin
    Close;
 end;
 
+
+//---------------------------------------------
+//  FORM KEY PRESS
+//---------------------------------------------
+procedure TFrmNew.FormKeyPress(Sender: TObject; var Key: Char);
+begin
+   if Ord(Key) = VK_RETURN then  begin
+      changed := true;
+      Key := #0;// THIS REMOVES THE BEEP SOUND
+      Close;
+   end
+   else if Ord(Key) = VK_ESCAPE then begin
+      changed := False;
+      Key := #0;
+      Close;
+   end;
+end;
+
+
 procedure TFrmNew.FormShow(Sender: TObject);
 begin
    changed := False;
    CbxGame.Images := FrmMain.ImageList;
    CbxGame.ItemIndex := 2;
    CbxType.ItemIndex := 0;
+   KeyPreview := True;
 end;
 
 procedure TFrmNew.OnKeyDown(Sender: TObject; var Key: Word;
@@ -75,6 +96,8 @@ begin
    else if Key = VK_ESCAPE then begin
       btnCancelClick(nil);
    end;
+
+   Key := 0;
 end;
 
 procedure TFrmNew.txtWidthChange(Sender: TObject);

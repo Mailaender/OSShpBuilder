@@ -3,7 +3,7 @@ unit Undo_Redo;
 interface
 
 uses
-  Graphics, SHP_file, Math; //OS_Document_Engine;
+  Graphics, SHP_file, Math;
 
 type
 TUndoType = (utSingleFrame,utMultiFrame,utResize,utAddFrame,utDeleteFrame,utReverseFrame,utMoveFrame,utSwapFrames);
