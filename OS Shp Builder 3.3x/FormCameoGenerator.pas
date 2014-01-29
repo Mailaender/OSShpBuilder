@@ -302,9 +302,6 @@ var
    List, Last: listed_colour;
    Start: Colour_element;
 begin
-   //AddToUndo(NewData^.UndoList,NewData^.SHP,1);
-   //FrmMain.UndoUpdate(NewData^.UndoList);
-
    dv := WorkOutTextBarDV(SHP, Palette) - 51;
    dv := dv + 40;
 

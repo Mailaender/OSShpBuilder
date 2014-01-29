@@ -890,6 +890,8 @@ end;
 
 ///---------------------------------------------
 // Undo Frame Editing
+// 
+// Set pixels
 //---------------------------------------------
 procedure UndoFrame (var SHP: TSHP; UndoRedo : TUndoRedo; z : integer);
 var
@@ -926,8 +928,8 @@ procedure UndoDeleteFrames (var SHP: TSHP; UndoRedo : TUndoRedo);
 var
    x,z : integer;
 begin
-   // z counts from first filled frame to the last frame. (this for will loop once or twice)
-   for z:= {(UndoRedo.Items[UndoRedo.Num-1].Num div 2)}0 to (UndoRedo.Items[UndoRedo.Num-1].Num - 1) do
+
+   for z:= 0 to (UndoRedo.Items[UndoRedo.Num-1].Num - 1) do
    begin
       // re add a frame at FrameID.
       MoveFrameImagesUp(SHP,UndoRedo.Items[UndoRedo.Num-1].Frames[z].FrameID-1);
@@ -942,6 +944,9 @@ begin
    end;
 end;
 
+//---------------------------------------------
+// 
+//---------------------------------------------
 procedure UndoReverseFrames (var SHP : TSHP; UndoRedo : TUndoRedo);
 var
    TempFrame : TFrameImage;

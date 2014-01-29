@@ -24,12 +24,12 @@ type
    end;
 
 
-
    TRGB32 = packed record
       B, G, R, A: byte;
    end;
    TRGB32Array = packed array[0..MaxInt div SizeOf(TRGB32) - 1] of TRGB32;
    PRGB32Array = ^TRGB32Array;
+
 
    PByte     = ^byte;
    PWord     = ^word;
@@ -97,7 +97,7 @@ type
       X:      integer;
       Y:      integer;
       colour: tcolor;
-      colour_used: boolean;
+      colour_used: boolean; // UNUSED
    end;
    TObjectData = array of TObjectData_Item;
 
