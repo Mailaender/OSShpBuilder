@@ -5,10 +5,10 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{46173988-0B14-499E-B601-442D7F207D87}</ProjectGuid>
+    <ProjectGuid>{73E77B79-CB6C-477B-80A6-9874C08D8511}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>SharpSHPBuilder</RootNamespace>
-    <AssemblyName>SharpSHPBuilder</AssemblyName>
+    <RootNamespace>Reader</RootNamespace>
+    <AssemblyName>Reader</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <DebugSymbols>true</DebugSymbols>
@@ -18,8 +18,9 @@
     <DefineConstants>DEBUG;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <ConsolePause>false</ConsolePause>
+    <Externalconsole>true</Externalconsole>
     <PlatformTarget>x86</PlatformTarget>
+    <Commandlineparameters>e1.shp temperat.pal</Commandlineparameters>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <DebugType>full</DebugType>
@@ -27,22 +28,22 @@
     <OutputPath>bin\Release</OutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <ConsolePause>false</ConsolePause>
+    <Externalconsole>true</Externalconsole>
     <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
-  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <Reference Include="Eto">
-      <HintPath>..\..\..\..\Downloads\Notedown-master\Eto\Release\Eto.dll</HintPath>
-    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Drawing" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <ProjectReference Include="..\FileParser\libshp.csproj">
       <Project>{F2A31F00-D219-427B-81A5-D8E3A638F464}</Project>
       <Name>libshp</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="MainWindow.cs" />
   </ItemGroup>
 </Project>

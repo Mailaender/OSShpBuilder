@@ -1,7 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpSHPBuilder", "SharpSHPBuilder\SharpSHPBuilder.csproj", "{1D3C34B6-55C7-46F6-843F-3F10F559297A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "libshp", "libshp\libshp.csproj", "{F2A31F00-D219-427B-81A5-D8E3A638F464}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reader", "Reader\Reader.csproj", "{73E77B79-CB6C-477B-80A6-9874C08D8511}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpSHPBuilder", "SharpSHPBuilder\SharpSHPBuilder.csproj", "{46173988-0B14-499E-B601-442D7F207D87}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -9,12 +13,20 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{1D3C34B6-55C7-46F6-843F-3F10F559297A}.Debug|x86.ActiveCfg = Debug|x86
-		{1D3C34B6-55C7-46F6-843F-3F10F559297A}.Debug|x86.Build.0 = Debug|x86
-		{1D3C34B6-55C7-46F6-843F-3F10F559297A}.Release|x86.ActiveCfg = Release|x86
-		{1D3C34B6-55C7-46F6-843F-3F10F559297A}.Release|x86.Build.0 = Release|x86
+		{46173988-0B14-499E-B601-442D7F207D87}.Debug|x86.ActiveCfg = Debug|x86
+		{46173988-0B14-499E-B601-442D7F207D87}.Debug|x86.Build.0 = Debug|x86
+		{46173988-0B14-499E-B601-442D7F207D87}.Release|x86.ActiveCfg = Release|x86
+		{46173988-0B14-499E-B601-442D7F207D87}.Release|x86.Build.0 = Release|x86
+		{73E77B79-CB6C-477B-80A6-9874C08D8511}.Debug|x86.ActiveCfg = Debug|x86
+		{73E77B79-CB6C-477B-80A6-9874C08D8511}.Debug|x86.Build.0 = Debug|x86
+		{73E77B79-CB6C-477B-80A6-9874C08D8511}.Release|x86.ActiveCfg = Release|x86
+		{73E77B79-CB6C-477B-80A6-9874C08D8511}.Release|x86.Build.0 = Release|x86
+		{F2A31F00-D219-427B-81A5-D8E3A638F464}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F2A31F00-D219-427B-81A5-D8E3A638F464}.Debug|x86.Build.0 = Debug|Any CPU
+		{F2A31F00-D219-427B-81A5-D8E3A638F464}.Release|x86.ActiveCfg = Release|Any CPU
+		{F2A31F00-D219-427B-81A5-D8E3A638F464}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = SharpSHPBuilder\SharpSHPBuilder.csproj
+		StartupItem = Reader\Reader.csproj
 	EndGlobalSection
 EndGlobal
