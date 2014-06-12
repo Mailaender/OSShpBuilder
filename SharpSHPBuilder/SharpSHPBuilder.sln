@@ -27,6 +27,6 @@ Global
 		{F2A31F00-D219-427B-81A5-D8E3A638F464}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = Reader\Reader.csproj
+		StartupItem = SharpSHPBuilder\SharpSHPBuilder.csproj
 	EndGlobalSection
 EndGlobal

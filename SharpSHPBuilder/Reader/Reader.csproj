@@ -20,7 +20,7 @@
     <WarningLevel>4</WarningLevel>
     <Externalconsole>true</Externalconsole>
     <PlatformTarget>x86</PlatformTarget>
-    <Commandlineparameters>e1.shp temperat.pal</Commandlineparameters>
+    <Commandlineparameters>--png e1.shp temperat.pal</Commandlineparameters>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <DebugType>full</DebugType>
@@ -41,7 +41,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <ProjectReference Include="..\FileParser\libshp.csproj">
+    <ProjectReference Include="..\libshp\libshp.csproj">
       <Project>{F2A31F00-D219-427B-81A5-D8E3A638F464}</Project>
       <Name>libshp</Name>
     </ProjectReference>

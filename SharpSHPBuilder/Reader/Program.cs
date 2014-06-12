@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using libshp;
 using System.IO;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
+using libshp;
 
 namespace Reader
 {
@@ -12,7 +13,7 @@ namespace Reader
 	{
 		public static void Main (string[] args)
 		{
-			if (args.Length < 2)
+			if (args.Length < 3)
 			{
 				Console.WriteLine("Usage:\n");
 				Console.WriteLine("Provide a source shp file and a palette (.pal).");
@@ -20,14 +21,13 @@ namespace Reader
 				return;
 			}
 
-			Converter.ConvertSpriteToPng(args);
+			if (args[0] == "--png")
+				Converter.ConvertSpriteToPng(args.Skip(1).ToArray());
 		}
 	}
 
 	static class Converter
 	{
-		const string output = "/output/";
-
 		public static void ConvertSpriteToPng(string[] args)
 		{
 			var src = args[0];
@@ -84,7 +84,7 @@ namespace Reader
 					bitmap.UnlockBits(data);
 
 					var filename = "{0}-{1:D4}.png".F(prefix, count++);
-					bitmap.Save(output + filename);
+					bitmap.Save(filename);
 				}
 			}
 			Console.WriteLine("Saved {0}-[0..{1}].png", prefix, count - 1);
