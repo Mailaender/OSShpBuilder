@@ -42,13 +42,19 @@
     <Compile Include="Exts\ButtonExts.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Eto.Platform.Gtk">
-      <HintPath>..\thirdparty\Eto.Platform.Gtk.dll</HintPath>
-    </Reference>
     <Reference Include="Eto">
       <HintPath>..\thirdparty\Eto.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="Eto.Gtk2">
+      <HintPath>..\thirdparty\Eto.Gtk2.dll</HintPath>
+    </Reference>
+    <Reference Include="Eto.Mac">
+      <HintPath>..\thirdparty\Eto.Mac.dll</HintPath>
+    </Reference>
+    <Reference Include="Eto.WinForms">
+      <HintPath>..\thirdparty\Eto.WinForms.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Exts\" />
