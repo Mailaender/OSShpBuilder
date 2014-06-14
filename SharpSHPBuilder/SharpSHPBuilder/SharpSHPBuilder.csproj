@@ -40,6 +40,8 @@
   <ItemGroup>
     <Compile Include="MainWindow.cs" />
     <Compile Include="Exts\ButtonExts.cs" />
+    <Compile Include="Exts\StringExts.cs" />
+    <Compile Include="Exts\LayoutExts.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Eto">

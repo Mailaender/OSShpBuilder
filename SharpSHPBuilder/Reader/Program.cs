@@ -21,10 +21,8 @@ namespace Reader
 				return;
 			}
 
-			var args = input.Skip(1).ToArray();
-
-			if (args[0] == "--png")
-				Commands.ConvertSpriteToPng(args);
+			if (input[0] == "--png")
+				Commands.ConvertSpriteToPng(input[1], input[2]);
 		}
 	}
 }

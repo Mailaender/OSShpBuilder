@@ -8,26 +8,25 @@ namespace libshp
 {
 	public static class Commands
 	{
-		public static void ConvertSpriteToPng(string[] args)
+		public static void ConvertSpriteToPng(string shp, string pal)
 		{
-			var src = args[0];
 			var shadowIndex = new int[] { };
 
-			var palette = Palette.Load(args[1], shadowIndex);
+			var palette = Palette.Load(pal, shadowIndex);
 
 			ISpriteSource source;
 
-			using (var stream = File.OpenRead(src))
+			using (var stream = File.OpenRead(shp))
 				if (stream == null)
 					return;
 
-			using (var stream = File.OpenRead(src))
-				source = SpriteSource.LoadSpriteSource(stream, src);
+			using (var stream = File.OpenRead(shp))
+				source = SpriteSource.LoadSpriteSource(stream, shp);
 
 			// The r8 padding requires external information that we can't access here.
 			var usePadding = false; // !(args.Contains("--nopadding") || source is R8Reader);
 			var count = 0;
-			var prefix = Path.GetFileNameWithoutExtension(src);
+			var prefix = Path.GetFileNameWithoutExtension(shp);
 
 			foreach (var frame in source.Frames)
 			{
@@ -64,6 +63,7 @@ namespace libshp
 					bitmap.UnlockBits(data);
 
 					var filename = "{0}-{1:D4}.png".F(prefix, count++);
+
 					bitmap.Save(filename);
 				}
 			}

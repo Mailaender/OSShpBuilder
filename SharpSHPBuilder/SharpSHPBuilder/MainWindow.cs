@@ -19,71 +19,74 @@ namespace SharpSHPBuilder
 
 			var layout = new DynamicLayout();
 
-			var shpFilenameLabel = new Label();
-			var palFilenameLabel = new Label();
-			var operationLabel = new Label() { Text = "No operation." };
+			var labelShpFilename = new Label() { Text = "Shp file: " };
+			var labelPalFilename = new Label() { Text = "Pal file: " };
+			var labelLastOperation = new Label() { Text = "No operation." };
 
 			var openDialog = new OpenFileDialog();
-
 			openDialog.CheckFileExists = true;
+
+			var lastDirectory = new Uri(EtoEnvironment.GetFolderPath(EtoSpecialFolder.ApplicationResources));
 
 			var selectShpFileButton = ButtonExts.EventButton("Select SHP", (sender, e) =>
 				{
-					// nasty HACK as workaround to "Recent Items" dir causing NRE
-					openDialog.Directory = new Uri(EtoEnvironment.GetFolderPath(EtoSpecialFolder.Documents));
+					openDialog.Directory = lastDirectory;
 
-					openDialog.ShowDialog(shpFilenameLabel);
-					shpFilenameLabel.Text = openDialog.FileName ?? "No shp!";
-					operationLabel.Text = "Selected shp file.";
+					openDialog.ShowDialog(labelShpFilename);
+					labelShpFilename.Text = openDialog.FileName.StripPathFromFilename() ?? "No shp!";
+					lastDirectory = openDialog.Directory;
+					labelLastOperation.Text = "Selected shp file.";
 				});
 
 			var selectPalFileButton = ButtonExts.EventButton("Select PAL", (sender, e) =>
 				{
-					// nasty HACK as workaround to "Recent Items" dir causing NRE
-					openDialog.Directory = new Uri(EtoEnvironment.GetFolderPath(EtoSpecialFolder.Documents));
+					openDialog.Directory = lastDirectory;
 
-					openDialog.ShowDialog(palFilenameLabel);
-					palFilenameLabel.Text = openDialog.FileName ?? "No pal!";
-					operationLabel.Text = "Selected pal file.";
+					openDialog.ShowDialog(labelPalFilename);
+					labelPalFilename.Text = openDialog.FileName.StripPathFromFilename() ?? "No pal!";
+					lastDirectory = openDialog.Directory;
+					labelLastOperation.Text = "Selected pal file.";
 				});
 
 			var convertToPngButton = ButtonExts.EventButton("Convert to png.", (sender, e) =>
 				{
-					var shp = shpFilenameLabel.Text;
-					var pal = palFilenameLabel.Text;
+					var shp = labelShpFilename.Text;
+					var pal = labelPalFilename.Text;
 
 					if (string.IsNullOrEmpty(shp) || string.IsNullOrEmpty(pal))
 					{
-						Console.WriteLine("The shp or pal file is null or was not selected.");
+						labelLastOperation.Text = "Operation failed! Did you select a .pal and .shp?";
 						return;
 					}
 
-					if (!shpFilenameLabel.Text.Contains(".shp") || !palFilenameLabel.Text.Contains(".pal"))
+					if (!labelShpFilename.Text.Contains(".shp") || !labelPalFilename.Text.Contains(".pal"))
 					{
-						Console.WriteLine("One of the selected files is not the correct file type (extension).");
+						labelLastOperation.Text = "Operation failed! One of the selected files is not the correct file type.";
 						return;
 					}
 
-					Commands.ConvertSpriteToPng(new[] {shp, pal} );
-					operationLabel.Text = "Converted {0} to png!".F(shp);
+					Commands.ConvertSpriteToPng(shp, pal);
+					labelLastOperation.Text = "Extracted {0}'s frames to .pngs!".F(shp);
 				});
 
 			var quitButton = ButtonExts.EventButton("Quit!", (sender, e) => { Environment.Exit(-1); });
 
-//			// OSX menubar
-//			if (platform.IsMac) // if (Generator.Supports<MenuBar>())
-//			{
-//				var menuBar = new MenuBar();
-//				this.Menu = menuBar;
-//			}
+			// OSX menubar
+			if (platform.IsMac) // if (Generator.Supports<MenuBar>())
+			{
+				var menuBar = new MenuBar();
+				this.Menu = menuBar;
+			}
 
-			layout.AddColumn
+			layout.BeginVertical();
+			layout.AddRange
 			(
 				selectShpFileButton, selectPalFileButton,
 				convertToPngButton, quitButton,
-				shpFilenameLabel, palFilenameLabel,
-				operationLabel
+				labelShpFilename, labelPalFilename,
+				labelLastOperation
 			);
+			layout.EndVertical();
 
 			Content = layout;
 		}
