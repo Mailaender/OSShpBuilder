@@ -18,5 +18,14 @@ namespace SharpSHPBuilder
 
 			return ret;
 		}
+
+		public static ButtonToolItem ToolbarEventButton(string text, EventHandler<EventArgs> e)
+		{
+			var ret = new ButtonToolItem();
+			ret.Text = text;
+			ret.Click += e;
+
+			return ret;
+		}
 	}
 }

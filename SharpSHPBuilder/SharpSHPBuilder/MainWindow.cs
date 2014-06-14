@@ -18,58 +18,13 @@ namespace SharpSHPBuilder
 			Size = new Size(640, 480);
 
 			var layout = new DynamicLayout();
+			var toolbar = new ToolBar();
 
-			var labelShpFilename = new Label() { Text = "Shp file: " };
-			var labelPalFilename = new Label() { Text = "Pal file: " };
-			var labelLastOperation = new Label() { Text = "No operation." };
+			var converter = new ConvertWindow();
 
-			var openDialog = new OpenFileDialog();
-			openDialog.CheckFileExists = true;
-
-			var lastDirectory = new Uri(EtoEnvironment.GetFolderPath(EtoSpecialFolder.ApplicationResources));
-
-			var selectShpFileButton = ButtonExts.EventButton("Select SHP", (sender, e) =>
-				{
-					openDialog.Directory = lastDirectory;
-
-					openDialog.ShowDialog(labelShpFilename);
-					labelShpFilename.Text = openDialog.FileName.StripPathFromFilename() ?? "No shp!";
-					lastDirectory = openDialog.Directory;
-					labelLastOperation.Text = "Selected shp file.";
-				});
-
-			var selectPalFileButton = ButtonExts.EventButton("Select PAL", (sender, e) =>
-				{
-					openDialog.Directory = lastDirectory;
-
-					openDialog.ShowDialog(labelPalFilename);
-					labelPalFilename.Text = openDialog.FileName.StripPathFromFilename() ?? "No pal!";
-					lastDirectory = openDialog.Directory;
-					labelLastOperation.Text = "Selected pal file.";
-				});
-
-			var convertToPngButton = ButtonExts.EventButton("Convert to png.", (sender, e) =>
-				{
-					var shp = labelShpFilename.Text;
-					var pal = labelPalFilename.Text;
-
-					if (string.IsNullOrEmpty(shp) || string.IsNullOrEmpty(pal))
-					{
-						labelLastOperation.Text = "Operation failed! Did you select a .pal and .shp?";
-						return;
-					}
-
-					if (!labelShpFilename.Text.Contains(".shp") || !labelPalFilename.Text.Contains(".pal"))
-					{
-						labelLastOperation.Text = "Operation failed! One of the selected files is not the correct file type.";
-						return;
-					}
-
-					Commands.ConvertSpriteToPng(shp, pal);
-					labelLastOperation.Text = "Extracted {0}'s frames to .pngs!".F(shp);
-				});
-
-			var quitButton = ButtonExts.EventButton("Quit!", (sender, e) => { Environment.Exit(-1); });
+			toolbar.Items.Add(ButtonExts.ToolbarEventButton("Open", (sender, e) => Console.WriteLine("todo: open files here")));
+			toolbar.Items.Add(new SeparatorToolItem());
+			toolbar.Items.Add(ButtonExts.ToolbarEventButton("Converter", (sender, e) => converter.Show()));
 
 			// OSX menubar
 			if (platform.IsMac) // if (Generator.Supports<MenuBar>())
@@ -78,15 +33,7 @@ namespace SharpSHPBuilder
 				this.Menu = menuBar;
 			}
 
-			layout.BeginVertical();
-			layout.AddRange
-			(
-				selectShpFileButton, selectPalFileButton,
-				convertToPngButton, quitButton,
-				labelShpFilename, labelPalFilename,
-				labelLastOperation
-			);
-			layout.EndVertical();
+			ToolBar = toolbar;
 
 			Content = layout;
 		}

@@ -5,7 +5,7 @@ namespace SharpSHPBuilder
 {
 	public static class StringExts
 	{
-		public static string StripPathFromFilename(this string str)
+		public static string JustFilename(this string str)
 		{
 			if (string.IsNullOrEmpty(str))
 				return string.Empty;
@@ -15,6 +15,11 @@ namespace SharpSHPBuilder
 
 			var last = str.LastIndexOf(Path.DirectorySeparatorChar);
 			return str.Substring(last + 1);
+		}
+
+		public static bool IsExt(this string source, string value)
+		{
+			return source.EndsWith("." + value);
 		}
 	}
 }
