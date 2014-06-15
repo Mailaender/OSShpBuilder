@@ -42,7 +42,10 @@
     <Compile Include="Exts\ButtonExts.cs" />
     <Compile Include="Exts\StringExts.cs" />
     <Compile Include="Exts\LayoutExts.cs" />
-    <Compile Include="ConvertWindow.cs" />
+    <Compile Include="Shp2PngWindow.cs" />
+    <Compile Include="Png2ShpWindow.cs" />
+    <Compile Include="Exts\InterfaceExts.cs" />
+    <Compile Include="Exts\FormExts.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Eto">

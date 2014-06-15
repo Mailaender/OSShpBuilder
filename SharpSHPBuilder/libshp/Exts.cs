@@ -2,6 +2,9 @@
 using System.IO;
 using System.Text;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
 
 namespace libshp
 {
@@ -10,6 +13,23 @@ namespace libshp
 		public static string F(this string str, params object[] objs) { return string.Format(str, objs); }
 
 		public static Lazy<T> Lazy<T>(Func<T> p) { return new Lazy<T>(p); }
+
+		public static Rectangle Bounds(this Bitmap b) { return new Rectangle(0, 0, b.Width, b.Height); }
+
+		public static byte[] ToBytes(this Bitmap bitmap)
+		{
+			var data = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly,
+				PixelFormat.Format8bppIndexed);
+
+			var bytes = new byte[bitmap.Width * bitmap.Height];
+			for (var i = 0; i < bitmap.Height; i++)
+				Marshal.Copy(new IntPtr(data.Scan0.ToInt64() + i * data.Stride),
+					bytes, i * bitmap.Width, bitmap.Width);
+
+			bitmap.UnlockBits(data);
+
+			return bytes;
+		}
 	}
 
 	public static class StreamExts

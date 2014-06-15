@@ -27,5 +27,14 @@ namespace SharpSHPBuilder
 
 			return ret;
 		}
+
+		public static ButtonMenuItem MenuEventButton(string text, EventHandler<EventArgs> e)
+		{
+			var ret = new ButtonMenuItem();
+			ret.Text = text;
+			ret.Click += e;
+
+			return ret;
+		}
 	}
 }

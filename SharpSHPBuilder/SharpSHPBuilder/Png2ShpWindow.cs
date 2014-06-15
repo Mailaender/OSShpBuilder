@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using Eto;
 using Eto.Forms;
@@ -8,12 +7,15 @@ using libshp;
 
 namespace SharpSHPBuilder
 {
-	public class ConvertWindow : Form
+	public class Png2ShpWindow : Form, IFormIndexer
 	{
-		public ConvertWindow()
+		public string FormIndexer { get { return "png2shp"; } }
+
+		public Png2ShpWindow()
 		{
-			Title = "Select .shp and .pal";
+			Title = "png >> shp";
 			Size = new Size(640, 480);
+			WindowStyle = WindowStyle.None;
 
 			var layout = new DynamicLayout();
 
@@ -21,27 +23,46 @@ namespace SharpSHPBuilder
 			openFile_dialog.CheckFileExists = true;
 			openFile_dialog.MultiSelect = true;
 
-			var sourcePals = SourceFileBox("Source pals.");
-			var sourceShps = SourceFileBox("Source shps.");
-
 			var lastDirectory = new Uri(EtoEnvironment.GetFolderPath(EtoSpecialFolder.ApplicationResources));
+
+			var outputFolder_dialog = new SelectFolderDialog() { Directory = lastDirectory.AbsolutePath };
+
+			var sourcePals = SourceFileBox("Source pals.");
+			var sourcePngs = SourceFileBox("Source pngs.");
+
+			var outputName_textbox = new TextBox() { PlaceholderText = "Output file name." };
+			var outputDirectory = string.Empty;
 
 			var openSourceFile_button = ButtonExts.EventButton("Open Source Files", (sender, e) =>
 				{
 					openFile_dialog.Directory = lastDirectory;
-					openFile_dialog.ShowDialog(this);
+					var result = openFile_dialog.ShowDialog(this);
+
+					if (result == DialogResult.Cancel)
+						return;
+
 					var files = openFile_dialog.Filenames;
 
 					var pals = files.Where(f => f.IsExt("pal"));
-					var shps = files.Where(f => f.IsExt("shp"));
+					var pngs = files.Where(f => f.IsExt("png"));
 
-					foreach (var shp in shps)
-						sourceShps.Items.Add(shp.JustFilename());
+					foreach (var png in pngs)
+						sourcePngs.Items.Add(png.JustFilename());
 
 					foreach (var pal in pals)
 						sourcePals.Items.Add(pal.JustFilename());
 
 					lastDirectory = openFile_dialog.Directory;
+				});
+
+			var selectOutputFolder_button = ButtonExts.EventButton("Select output folder", (sender, e) =>
+				{
+					var result = outputFolder_dialog.ShowDialog(this);
+					if (result == DialogResult.Cancel)
+						return;
+
+					outputDirectory = outputFolder_dialog.Directory;
+
 				});
 
 			var clearSourceFiles_button = ButtonExts.EventButton("Clear selected files", (sender, e) =>
@@ -50,15 +71,15 @@ namespace SharpSHPBuilder
 					if (result == DialogResult.No)
 						return;
 
-					ClearItems(sourcePals, sourceShps);
+					ClearItems(sourcePals, sourcePngs);
 				});
 
-			var convertToPng_button = ButtonExts.EventButton("Convert to png", (sender, e) =>
+			var convertToShp_button = ButtonExts.EventButton("Convert to shp", (sender, e) =>
 				{
-					var shps = sourceShps.Items;
+					var pngs = sourcePngs.Items;
 					var pals = sourcePals.Items;
 
-					if (!shps.Any())
+					if (!pngs.Any())
 					{
 						MessageBox.Show(this, "No files to convert.");
 						return;
@@ -72,10 +93,11 @@ namespace SharpSHPBuilder
 
 					var pal = pals.First().Text;
 
-					foreach (var shp in shps)
-						Commands.ConvertSpriteToPng(shp.Text, pal);
+					// BUG: output SHPs lose all frame metadata
+					foreach (var png in pngs)
+						Commands.ConvertPngToShp(pal, png.Text);
 
-					MessageBox.Show(this, "Frames converted successfully!");
+					MessageBox.Show(this, "PNGs packed successfully!");
 				});
 
 			var closeForm_button = ButtonExts.EventButton("Close form", (sender, e) => this.Close());
@@ -84,13 +106,13 @@ namespace SharpSHPBuilder
 
 			layout.BeginHorizontal();
 			layout.Add(sourcePals);
-			layout.Add(sourceShps);
+			layout.Add(sourcePngs);
 			layout.EndHorizontal();
 
 			layout.AddRow
 			(
 				clearSourceFiles_button,
-				convertToPng_button
+				convertToShp_button
 			);
 
 

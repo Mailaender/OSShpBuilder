@@ -3,6 +3,7 @@ using System.IO;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Drawing.Imaging;
+using System.Linq;
 
 namespace libshp
 {
@@ -68,6 +69,22 @@ namespace libshp
 				}
 			}
 			Console.WriteLine("Saved {0}-[0..{1}].png", prefix, count - 1);
+		}
+
+		public static void ConvertPngToShp(string pal, params string[] pngs)
+		{
+			var inputFiles = pngs.OrderBy(a => a).ToList();
+			var dest = inputFiles[0].Split('-').First() + ".shp";
+			var frames = inputFiles.Select(a => PngReader.Load(a));
+
+			var size = frames.First().Size;
+			if (frames.Any(f => f.Size != size))
+				throw new InvalidOperationException("All frames must be the same size");
+
+			using (var destStream = File.Create(dest))
+				ShpReader.Write(destStream, size, frames.Select(f => f.ToBytes()));
+
+			Console.WriteLine(dest + " saved.");
 		}
 	}
 }

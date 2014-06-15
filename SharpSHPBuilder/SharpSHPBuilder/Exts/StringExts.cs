@@ -21,5 +21,10 @@ namespace SharpSHPBuilder
 		{
 			return source.EndsWith("." + value);
 		}
+
+		public static string F(this string str, params object[] objs)
+		{
+			return string.Format(str, objs);
+		}
 	}
 }
