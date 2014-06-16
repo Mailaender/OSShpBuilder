@@ -56,7 +56,7 @@ namespace SharpSHPBuilder
 					FormExts.ClearItems(sourcePals, sourceShps);
 				});
 
-			var convertToPng_button = ButtonExts.EventButton("Convert to png", (sender, e) =>
+			var convertToPng_button = ButtonExts.EventButton("Convert: shp >> png", (sender, e) =>
 				{
 					var shps = sourceShps.Items;
 					var pals = sourcePals.Items;
@@ -103,7 +103,7 @@ namespace SharpSHPBuilder
 		{
 			var ret = new ListBox
 			{
-				Size = new Size((this.Size.Width / 2) - 1, 380)
+				Size = new Size((this.Size.Width / 2) - 1, 395)
 			};
 
 			ret.ToolTip = tooltip;

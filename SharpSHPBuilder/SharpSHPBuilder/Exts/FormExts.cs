@@ -13,6 +13,12 @@ namespace SharpSHPBuilder
 				collection.Add(item);
 		}
 
+		public static void AddRange(this MenuItemCollection collection, params ButtonMenuItem[] items)
+		{
+			foreach (var item in items)
+				collection.Add(item as MenuItem);
+		}
+
 		public static void AddRange(this List<Form> list, params Form[] forms)
 		{
 			foreach (var form in forms)

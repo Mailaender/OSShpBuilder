@@ -20,6 +20,8 @@ namespace SharpSHPBuilder
 			Title = "Main Window";
 			Size = new Size(640, 480);
 
+			Closed += (sender, e) => Quit(false);
+
 			var layout = new DynamicLayout();
 			var openFile_dialog = new OpenFileDialog();
 
@@ -37,39 +39,43 @@ namespace SharpSHPBuilder
 			if (Generator.Supports<MenuBar>())
 			{
 				var menuBar = new MenuBar();
-				menuBar.Items.AddRange
+
+				var fileMenu = menuBar.Items.GetSubmenu("&File");
+				fileMenu.Shortcut = Keys.F & Keys.Control;
+				fileMenu.Items.AddRange
 				(
-					FileMenuButton(),
-					OpenToolButton(shp2png, png2shp)
+					ButtonMenuItem("Open", (sender, e) => MessageBox.Show(this, "TODO", "Open")),
+					ButtonMenuItem("Quit", (sender, e) => Quit())
 				);
+
+				menuBar.Items.Add(ToolMenuButton(shp2png, png2shp));
 				this.Menu = menuBar;
 			}
 
 			Content = layout;
 		}
 
-		ButtonMenuItem FileMenuButton()
+		ButtonMenuItem ButtonMenuItem(string text, EventHandler<EventArgs> e)
 		{
 			var ret = new ButtonMenuItem();
-			ret.Text = "File";
-			ret.Shortcut = Keys.ForwardSlash;
-
-			var fileButton = ButtonExts.MenuEventButton("Open", (sender, e) =>
-				MessageBox.Show(this, "TODO", "Not implemented"));
-
-			ret.Items.Add(fileButton);
+			ret.Text = text;
+			ret.Click += e;
 
 			return ret;
 		}
 
-		ButtonMenuItem OpenToolButton(params Form[] forms)
+		ButtonMenuItem ToolMenuButton(params Form[] forms)
 		{
 			var ret = new ButtonMenuItem();
 			ret.Text = "Tools";
 			ret.Shortcut = Keys.Backslash;
 
 			var shp2png = ButtonExts.MenuEventButton("Shp >> Png", (sender, e) => ShowFormViaIndexer("shp2png"));
-			var png2shp = ButtonExts.MenuEventButton("Png >> Shp", (sender, e) => ShowFormViaIndexer("png2shp"));
+			var png2shp = ButtonExts.MenuEventButton("Png >> Shp", (sender, e) =>
+				{
+					MessageBox.Show(this, "This is buggy!", "Do not use.");
+					ShowFormViaIndexer("png2shp");
+				});
 
 			ret.Items.AddRange
 			(
@@ -86,6 +92,21 @@ namespace SharpSHPBuilder
 			form.Show();
 
 			return form;
+		}
+
+		void Quit(bool needConfirmation = true)
+		{
+			if (needConfirmation)
+			{
+				var result = MessageBox.Show(this, "Quit?", MessageBoxButtons.YesNo);
+				if (result == DialogResult.No)
+					return;
+			}
+
+			foreach (var form in Forms.Where(f => f.Visible))
+				form.Close();
+
+			Environment.Exit(-1);
 		}
 
 		[STAThread]

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Collections.Generic;
 using Eto;
 using Eto.Forms;
 using Eto.Drawing;
@@ -74,7 +75,7 @@ namespace SharpSHPBuilder
 					ClearItems(sourcePals, sourcePngs);
 				});
 
-			var convertToShp_button = ButtonExts.EventButton("Convert to shp", (sender, e) =>
+			var convertToShp_button = ButtonExts.EventButton("Convert: png >> shp", (sender, e) =>
 				{
 					var pngs = sourcePngs.Items;
 					var pals = sourcePals.Items;
@@ -123,7 +124,7 @@ namespace SharpSHPBuilder
 		{
 			var ret = new ListBox
 			{
-				Size = new Size((this.Size.Width / 2) - 1, 380)
+				Size = new Size((this.Size.Width / 2) - 1, 395)
 			};
 
 			ret.ToolTip = tooltip;
