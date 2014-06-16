@@ -1,11 +1,25 @@
 SharpSHPBuilder
 ===============
 
-This is a fork of OS SHP Builder 3.3x (an open source application to edit .SHP/.PAL files), this time, coded in C# and aimed to be cross-platform.
+###What is it?
+A tool for SHP manipulation and creation (mainly for [OpenRA](https://github.com/OpenRA/OpenRA)).
 
-It is based on Banshee's, Stucuk's and Zaaz's work.
-Check http://www.ppmsite.com/forum/index.php?f=121 for more details about the original software.
+###Why make it?
+Discover the inspiraton [here](http://www.ppmsite.com/forum/index.php?f=121).
 
-Join #openra on Freenode (http://webchat.freenode.net/?channels=openra) to contact me.
+* Remove Windows-only restriction 
+* Provide a UI for parts of [OpenRA.Utility](https://github.com/OpenRA/OpenRA/tree/bleed/OpenRA.Utility)
+* Learn GUI construction
 
--- Phrohdoh
+###Why use it?
+You shouldn't expect much of this for the next year and possibly more.
+
+* You want to create/edit SHP files in an interface
+* You aren't on a Windows system
+* Beta tools are fun!
+
+###How can I help?
+* Join [#openra on Freenode](http://webchat.freenode.net/?channels=openra) to contact me.
+* Testing and reporting issues
+* Filing PRs including fixes and/or features you would like to see
+* Teach me programming!
